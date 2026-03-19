@@ -1,0 +1,192 @@
+<div class="page-title"><span style="color:var(--text2)">⚙</span> <span data-i18n="settings.title">Settings</span></div>
+
+<div class="page-content">
+
+  <!-- Language -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--accent)"></div>
+        <span data-i18n="settings.language">Language</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="settings.language">Language</div>
+          <div class="settings-label-desc" data-i18n="settings.language_desc">Choose the interface language</div>
+        </div>
+        <div class="settings-control">
+          <div class="lang-selector" id="lang-selector">
+            <button class="lang-btn" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="ro">RO</button>
+            <button class="lang-btn" data-lang="ru">RU</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--accent2)"></div>
+        <span data-i18n="settings.theme">Theme</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="settings.theme">Theme</div>
+          <div class="settings-label-desc" data-i18n="settings.theme_desc">Choose the visual theme</div>
+        </div>
+        <div class="settings-control">
+          <div class="lang-selector" id="theme-selector">
+            <button class="lang-btn" data-theme-val="dark" data-i18n="settings.theme_dark">Dark</button>
+            <button class="lang-btn" data-theme-val="light" data-i18n="settings.theme_light">Light</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Startup -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--accent2)"></div>
+        <span data-i18n="settings.startup">Startup</span>
+      </div>
+    </div>
+    <div class="panel-body">
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="settings.auto_start">Auto start services</div>
+          <div class="settings-label-desc" data-i18n="settings.auto_start_desc">Start Nginx, PHP and Redis when opening the app</div>
+        </div>
+        <div class="settings-control">
+          <label class="toggle" id="auto-start-toggle">
+            <input type="checkbox" id="auto-start-checkbox" />
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="settings.start_on_boot">Start on boot</div>
+          <div class="settings-label-desc" data-i18n="settings.start_on_boot_desc">Launch VeltryNora when Windows starts</div>
+        </div>
+        <div class="settings-control">
+          <label class="toggle" id="start-on-boot-toggle">
+            <input type="checkbox" id="start-on-boot-checkbox" />
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Nginx -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--nginx)"></div>
+        <span>Nginx</span>
+      </div>
+    </div>
+    <div class="panel-body">
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="settings.nginx_workers">Worker processes</div>
+          <div class="settings-label-desc" data-i18n="settings.nginx_workers_desc">Number of nginx worker processes</div>
+        </div>
+        <div class="settings-control">
+          <select id="nginx-workers-select" class="select">
+            <option value="0" data-i18n="settings.nginx_workers_auto">auto</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="4">4</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="settings.nginx_keepalive">Keepalive timeout</div>
+          <div class="settings-label-desc" data-i18n="settings.nginx_keepalive_desc">Keep-alive connection timeout in seconds</div>
+        </div>
+        <div class="settings-control">
+          <input type="number" id="nginx-keepalive-input" class="input" min="0" max="300" style="width:80px;text-align:center" value="65" />
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Services -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--good)"></div>
+        <span data-i18n="settings.services">Services</span>
+      </div>
+    </div>
+    <div class="panel-body">
+
+      <!-- Base path -->
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="settings.base_path">Base path</div>
+          <div class="settings-label-desc" data-i18n="settings.base_path_desc">Folder where services are installed</div>
+        </div>
+        <div class="settings-control" style="min-width: 320px">
+          <div class="path-row">
+            <input type="text" id="base-path-input" class="input" style="flex:1" data-i18n="settings.base_path_placeholder" />
+            <button class="btn btn-secondary" id="base-path-browse-btn">📁</button>
+            <button class="btn btn-secondary" id="base-path-reset-btn" style="font-size:11px" data-i18n="common.reset">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Minimize to tray -->
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="settings.minimize_to_tray">Minimize to tray</div>
+          <div class="settings-label-desc" data-i18n="settings.minimize_to_tray_desc">Hide to system tray instead of closing</div>
+        </div>
+        <div class="settings-control">
+          <label class="toggle" id="minimize-to-tray-toggle">
+            <input type="checkbox" id="minimize-to-tray-checkbox" />
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Auto stop -->
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="settings.auto_stop">Auto stop</div>
+          <div class="settings-label-desc" data-i18n="settings.auto_stop_desc">Stop all services when closing the application</div>
+        </div>
+        <div class="settings-control">
+          <label class="toggle" id="auto-stop-toggle">
+            <input type="checkbox" id="auto-stop-checkbox" />
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

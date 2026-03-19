@@ -1,0 +1,41 @@
+<div class="page-title"><span style="color:var(--text2)">≡</span> <span data-i18n="logs.title">Logs</span></div>
+
+<div class="page-content">
+  <!-- Nginx logs -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background:var(--nginx)"></div>
+        <span>Nginx</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="lang-selector" id="log-tab-selector" style="padding:2px;gap:2px">
+          <button class="lang-btn active" data-log="error" data-i18n="logs.error">Error</button>
+          <button class="lang-btn" data-log="access" data-i18n="logs.access">Access</button>
+        </div>
+        <button class="btn btn-secondary btn-icon" id="log-refresh-btn" title="Refresh"><i data-lucide="refresh-cw"></i></button>
+        <button class="btn btn-danger btn-icon" id="log-clear-btn" title="Clear"><i data-lucide="trash-2"></i></button>
+      </div>
+    </div>
+    <div class="panel-body" style="padding:0">
+      <pre id="log-content" class="log-viewer"><span style="color:var(--text3)" data-i18n="logs.loading">Loading...</span></pre>
+    </div>
+  </div>
+
+  <!-- App logs -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background:var(--warn)"></div>
+        <span data-i18n="logs.app_log">App Log</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-secondary btn-icon" id="applog-refresh-btn" title="Refresh"><i data-lucide="refresh-cw"></i></button>
+        <button class="btn btn-danger btn-icon" id="applog-clear-btn" title="Clear"><i data-lucide="trash-2"></i></button>
+      </div>
+    </div>
+    <div class="panel-body" style="padding:0">
+      <pre id="applog-content" class="log-viewer"></pre>
+    </div>
+  </div>
+</div>

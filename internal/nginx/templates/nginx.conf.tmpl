@@ -1,0 +1,24 @@
+worker_processes {{.Workers}};
+
+error_log {{.ErrorLog}};
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include {{.MimesPath}};
+    default_type application/octet-stream;
+    sendfile on;
+    keepalive_timeout {{.Keepalive}};
+    access_log {{.AccessLog}};
+
+    # catch-all: block requests to domains without an active site
+    server {
+        listen 80 default_server;
+        server_name _;
+        return 503;
+    }
+
+    include {{.SitesPath}};
+}

@@ -1,0 +1,133 @@
+<div class="page active" id="page-dashboard">
+  <div class="page-title">
+    <span style="color:var(--accent)">▦</span>
+    <span data-i18n="dash.title">Dashboard</span>
+    <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">↻ 3s</span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card fade-in" style="--card-accent: var(--accent2)">
+      <div class="stat-label">⬡ <span data-i18n="dash.cpu">CPU</span></div>
+      <div class="stat-value" id="cpu-val">--%</div>
+      <div class="stat-sub" id="cpu-sub" data-i18n="dash.loading">loading...</div>
+      <div class="gauge-wrap">
+        <div
+          class="gauge-fill"
+          id="cpu-gauge"
+          style="width: 0%; background: var(--accent2)"
+        ></div>
+      </div>
+    </div>
+    <div class="stat-card fade-in" style="--card-accent: var(--accent)">
+      <div class="stat-label">◫ <span data-i18n="dash.ram">RAM</span></div>
+      <div class="stat-value" id="ram-val">--</div>
+      <div class="stat-sub" id="ram-sub" data-i18n="dash.loading">loading...</div>
+      <div class="gauge-wrap">
+        <div class="gauge-fill" id="ram-gauge" style="width: 0%"></div>
+      </div>
+    </div>
+    <div class="stat-card fade-in" style="--card-accent: var(--warn)">
+      <div class="stat-label">⊟ <span data-i18n="dash.disk">Disk</span></div>
+      <div class="stat-value" id="disk-val">--%</div>
+      <div class="stat-sub" id="disk-sub" data-i18n="dash.loading">loading...</div>
+      <div class="gauge-wrap">
+        <div
+          class="gauge-fill"
+          id="disk-gauge"
+          style="width: 0%; background: var(--warn)"
+        ></div>
+      </div>
+    </div>
+    <div class="stat-card fade-in" style="--card-accent: var(--good)">
+      <div class="stat-label">◎ <span data-i18n="dash.uptime">Uptime</span></div>
+      <div class="stat-value" id="uptime-val">--</div>
+      <div class="stat-spacer"></div>
+      <div class="stat-sub" id="uptime-sub" data-i18n="dash.loading">loading...</div>
+      <div class="gauge-wrap">
+        <div
+          class="gauge-fill"
+          style="width: 100%; background: var(--good)"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="dot" style="background: var(--good)"></div>
+          <span data-i18n="dash.services">Services</span>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="service-list" id="services-list">
+          <div style="color: var(--text3); font-size: 11px" data-i18n="dash.loading">loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="dot" style="background: var(--accent)"></div>
+          <span data-i18n="dash.latest_versions">Latest Versions</span>
+        </div>
+        <div style="position:relative">
+          <button class="versions-info-btn" id="versions-info-btn" title="">ⓘ</button>
+          <div class="versions-info-popup" id="versions-info-popup">
+            <div class="versions-info-row">
+              <span style="color:var(--good)">✓</span>
+              <span data-i18n="dash.cache_fresh"></span>
+            </div>
+            <div class="versions-info-row">
+              <span style="color:var(--text3)">⟳</span>
+              <span data-i18n="dash.cache_cached"></span>
+            </div>
+            <div class="versions-info-note" data-i18n="dash.cache_note"></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="service-list">
+          <div class="service-item">
+            <div
+              class="service-icon"
+              style="background: rgba(0, 150, 57, 0.12); color: var(--nginx)"
+            >
+              N
+            </div>
+            <div class="service-info">
+              <div class="service-name">Nginx</div>
+              <div class="service-detail" id="latest-nginx" data-i18n="dash.loading">loading...</div>
+            </div>
+          </div>
+          <div class="service-item">
+            <div
+              class="service-icon"
+              style="background: rgba(136, 146, 191, 0.1); color: var(--php)"
+            >
+              P
+            </div>
+            <div class="service-info">
+              <div class="service-name">PHP</div>
+              <div class="service-detail" id="latest-php" data-i18n="dash.loading">loading...</div>
+            </div>
+          </div>
+          <div class="service-item">
+            <div
+              class="service-icon"
+              style="background: rgba(220, 56, 44, 0.1); color: var(--redis)"
+            >
+              R
+            </div>
+            <div class="service-info">
+              <div class="service-name">Redis</div>
+              <div class="service-detail" id="latest-redis" data-i18n="dash.loading">loading...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

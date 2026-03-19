@@ -1,0 +1,63 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Wails
+        shell: bash
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build VeltryNora.exe
+        shell: bash
+        run: wails build -webview2 embed
+
+      - name: Extract changelog for this version
+        id: changelog
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          BODY=$(awk "/^## v?${VERSION}/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md)
+          if [ -z "$BODY" ]; then
+            BODY="Release ${TAG}"
+          fi
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer
+        shell: bash
+        run: iscc installer.iss
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: VeltryNora ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.body }}
+          files: |
+            build/bin/VeltryNora.exe
+            build/bin/VeltryNora-Setup.exe

@@ -1,0 +1,58 @@
+<div class="page-title"><span style="color:var(--php)">⬡</span> <span data-i18n="php.title">PHP Manager</span></div>
+
+<!-- Installed versions -->
+<div id="php-installed-section" class="page-content">
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--php)"></div>
+        <span data-i18n="common.installed_versions">Installed versions</span>
+      </div>
+      <div class="panel-action" id="php-add-btn" data-i18n="common.add_new">
+        + Install new version
+      </div>
+    </div>
+    <div class="panel-body">
+      <div id="php-versions-list" class="php-list">
+        <div style="color: var(--text3); font-size: 11px" data-i18n="dash.loading">loading...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Not installed -->
+<div id="php-not-installed" style="display: none">
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--warn)"></div>
+        <span data-i18n="php.not_installed">PHP is not installed</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="install-row">
+        <select id="php-available-versions" class="select">
+          <option data-i18n="common.loading">Loading...</option>
+        </select>
+        <label class="toggle" title="Archived versions" style="flex-shrink:0">
+          <input type="checkbox" id="php-archived-toggle" />
+          <span class="toggle-track"></span>
+          <span class="toggle-thumb"></span>
+        </label>
+        <span style="font-size:11px;color:var(--text3);white-space:nowrap" data-i18n="php.archived">Archived</span>
+        <button class="btn btn-primary" id="php-install-btn" data-i18n="common.install">Install</button>
+      </div>
+      <div id="php-progress-first" style="display: none">
+        <div class="progress-wrap">
+          <div
+            class="progress-bar"
+            id="php-progress-bar-first"
+            style="width: 0%"
+          ></div>
+        </div>
+        <div class="progress-label" id="php-progress-label-first">0%</div>
+      </div>
+    </div>
+  </div>
+</div>

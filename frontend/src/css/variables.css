@@ -1,0 +1,73 @@
+:root {
+  --bg: #070b0f;
+  --bg2: #0d1219;
+  --bg3: #121a23;
+  --border: #1f2f42;
+  --border2: #2a3f58;
+  --accent: #00c9a0;
+  --accent2: #2f9bff;
+  --accent3: #ff6b35;
+  --php: #9ba8d4;
+  --redis: #e05252;
+  --mysql: #1a7abf;
+  --nginx: #2db55d;
+  --text: #dde6ef;
+  --text2: #8da0b3;
+  --text3: #4d6070;
+  --good: #3ecf6e;
+  --warn: #e0a822;
+  --danger: #f55b52;
+
+  --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-display: "Syne", sans-serif;
+}
+
+/* LIGHT THEME */
+[data-theme="light"] {
+  --bg: #eef2f7;
+  --bg2: #ffffff;
+  --bg3: #e4ecf4;
+  --border: #ccd8e8;
+  --border2: #b0c4d8;
+  --text: #0f1e2e;
+  --text2: #3a5068;
+  --text3: #7a96aa;
+}
+
+[data-theme="light"] body::before {
+  background-image:
+    linear-gradient(rgba(0, 160, 120, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 160, 120, 0.05) 1px, transparent 1px);
+}
+
+[data-theme="light"] .topbar {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 201, 160, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 201, 160, 0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}

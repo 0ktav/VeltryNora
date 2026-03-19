@@ -1,0 +1,77 @@
+<div class="page-title"><span style="color:var(--accent2)">ℹ</span> <span data-i18n="about.title">About</span></div>
+
+<div class="page-content">
+
+  <!-- App identity -->
+  <div class="panel">
+    <div class="panel-body" style="padding:24px 20px;display:flex;align-items:center;gap:20px">
+      <div style="width:52px;height:52px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32" style="display:block">
+          <defs>
+            <linearGradient id="aL" x1="20" y1="22" x2="50" y2="76" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#00e5bb"/>
+              <stop offset="100%" stop-color="#00b8d4"/>
+            </linearGradient>
+            <linearGradient id="aR" x1="80" y1="22" x2="50" y2="76" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#00c4f0"/>
+              <stop offset="100%" stop-color="#00a0cc"/>
+            </linearGradient>
+          </defs>
+          <polyline points="20,22 50,76 80,22" fill="none" stroke="#00d4aa" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+          <line x1="20" y1="22" x2="50" y2="76" stroke="url(#aL)" stroke-width="9.5" stroke-linecap="round"/>
+          <line x1="80" y1="22" x2="50" y2="76" stroke="url(#aR)" stroke-width="9.5" stroke-linecap="round"/>
+          <circle cx="50" cy="76" r="2.5" fill="#00e5bb" opacity="0.55"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:18px;font-weight:700;color:var(--text)" id="about-app-name">VeltryNora</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+          <span id="about-version-badge" style="font-size:11px;font-weight:600;color:var(--accent2);background:rgba(0,196,240,0.1);border:1px solid rgba(0,196,240,0.2);border-radius:4px;padding:2px 8px">v1.0.0</span>
+        </div>
+        <div style="color:var(--text3);font-size:12px;margin-top:6px" data-i18n="about.description">Local web server manager for Windows</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details -->
+  <div class="panel">
+    <div class="panel-body">
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="about.author">Author</div>
+        </div>
+        <div class="settings-control">
+          <span id="about-author" style="color:var(--text);font-size:13px"></span>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="about.repository">Repository</div>
+        </div>
+        <div class="settings-control">
+          <button class="btn btn-secondary" id="about-repo-btn" style="font-size:12px">github.com/0ktav/VeltryNora</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Check for updates -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background:var(--accent2)"></div>
+        <span data-i18n="about.updates">Updates</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="about-check-updates-btn" data-i18n="about.check_updates">Check for updates</button>
+        <span id="about-update-status" style="font-size:12px;color:var(--text3)"></span>
+      </div>
+    </div>
+  </div>
+
+</div>

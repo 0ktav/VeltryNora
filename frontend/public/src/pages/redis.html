@@ -1,0 +1,111 @@
+<div class="page-title"><span style="color:var(--redis)">◉</span> <span data-i18n="redis.title">Redis</span></div>
+
+<!-- Not installed -->
+<div id="redis-not-installed">
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--warn)"></div>
+        <span data-i18n="redis.not_installed">Redis is not installed</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="install-row">
+        <select id="redis-available-versions" class="select">
+          <option data-i18n="common.loading">Loading...</option>
+        </select>
+        <button class="btn btn-primary" id="redis-install-btn" data-i18n="common.install">
+          Install
+        </button>
+      </div>
+      <div id="redis-progress-first" style="display: none">
+        <div class="progress-wrap">
+          <div
+            class="progress-bar"
+            id="redis-progress-bar-first"
+            style="width: 0%"
+          ></div>
+        </div>
+        <div class="progress-label" id="redis-progress-label-first">0%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Installed -->
+<div id="redis-installed" style="display: none" class="page-content">
+  <!-- Active version -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div
+          class="dot"
+          id="redis-status-dot"
+          style="background: var(--text3)"
+        ></div>
+        <span data-i18n="common.active_version">Active version:</span>
+        <span
+          id="redis-active-version"
+          style="color: var(--accent); margin-left: 6px"
+          >--</span
+        >
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-hidden" id="redis-start-btn">
+          ▷ Start
+        </button>
+        <button class="btn btn-warning btn-hidden" id="redis-stop-btn">
+          ◼ Stop
+        </button>
+        <button class="btn btn-secondary btn-hidden" id="redis-restart-btn">
+          ↺ Restart
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Installed versions -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--redis)"></div>
+        <span data-i18n="common.installed_versions">Installed versions</span>
+      </div>
+      <div class="panel-action" id="redis-add-btn" data-i18n="common.add_new">
+        + Install new version
+      </div>
+    </div>
+    <div class="panel-body">
+      <div id="redis-versions-list"></div>
+    </div>
+  </div>
+
+  <!-- Logs -->
+  <div class="panel">
+    <div class="panel-header accordion-header" id="redis-log-toggle" style="cursor:pointer">
+      <div class="panel-title">
+        <div class="dot" style="background:var(--text3)"></div>
+        <span data-i18n="nav.logs">Logs</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label class="log-auto-label" id="redis-log-auto-label" style="display:none;align-items:center;gap:6px;cursor:pointer" title="Auto-refresh">
+          <label class="toggle" style="pointer-events:none">
+            <input type="checkbox" id="redis-log-auto-check" style="pointer-events:auto" />
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+          <span style="font-size:11px;color:var(--text3);white-space:nowrap" data-i18n="logs.auto">Auto</span>
+        </label>
+        <button class="btn btn-secondary btn-icon" id="redis-log-refresh-btn" style="display:none"><i data-lucide="refresh-cw"></i></button>
+        <button class="btn btn-danger btn-icon" id="redis-log-clear-btn" style="display:none"><i data-lucide="trash-2"></i></button>
+        <i data-lucide="chevron-down" id="redis-log-chevron" style="color:var(--text3);width:16px;height:16px;transition:transform 0.2s"></i>
+      </div>
+    </div>
+    <div id="redis-log-body" style="display:none">
+      <div style="padding:0">
+        <pre id="redis-log-content" class="log-viewer"></pre>
+      </div>
+    </div>
+  </div>
+
+</div>
