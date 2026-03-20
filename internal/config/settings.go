@@ -7,16 +7,19 @@ import (
 )
 
 type AppSettings struct {
-	BasePath       string `json:"base_path"`
-	AutoStop       bool   `json:"auto_stop"`
-	AutoStart      bool   `json:"auto_start"`
-	StartOnBoot    bool   `json:"start_on_boot"`
-	Theme          string `json:"theme"` // "dark" | "light"
-	Language       string `json:"language"`
-	NginxWorkers   int    `json:"nginx_workers"`   // 0 = auto
-	NginxKeepalive int    `json:"nginx_keepalive"` // seconds
-	MinimizeToTray bool   `json:"minimize_to_tray"`
-	ShowAppLog     bool   `json:"show_app_log"`
+	BasePath         string `json:"base_path"`
+	AutoStop         bool   `json:"auto_stop"`
+	AutoStart        bool   `json:"auto_start"`
+	StartOnBoot      bool   `json:"start_on_boot"`
+	Theme            string `json:"theme"`            // "dark" | "light"
+	Language         string `json:"language"`
+	NginxWorkers     int    `json:"nginx_workers"`    // 0 = auto
+	NginxKeepalive   int    `json:"nginx_keepalive"`  // seconds
+	MinimizeToTray   bool   `json:"minimize_to_tray"`
+	ShowAppLog       bool   `json:"show_app_log"`
+	PreferredBrowser    string `json:"preferred_browser"`    // exe path, empty = system default
+	NotifyServiceCrash  bool   `json:"notify_service_crash"`
+	NotifyOperationFail bool   `json:"notify_operation_fail"`
 }
 
 func settingsPath() string {

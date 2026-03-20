@@ -5,6 +5,7 @@ import (
 	"nginxpanel/internal/cache"
 	"nginxpanel/internal/config"
 	"nginxpanel/internal/nginx"
+	"nginxpanel/internal/notify"
 	"nginxpanel/internal/php"
 	"nginxpanel/internal/redis"
 	"nginxpanel/internal/system"
@@ -45,8 +46,14 @@ func checkLatestVersion(
 	return VersionResult{Version: version, FromCache: false}
 }
 
+func (a *App) ShowNotification(title, message string) {
+	notify.Show(title, message)
+}
+
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+
+	go system.StartServiceWatcher(ctx)
 
 	s := config.LoadSettings()
 	if s.AutoStart {

@@ -1,0 +1,44 @@
+<div class="page-title"><span style="color:var(--accent2)">⊟</span> <span data-i18n="hosts.title">Hosts</span></div>
+
+<div class="page-content">
+
+  <!-- Add entry -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--accent)"></div>
+        <span data-i18n="hosts.add_entry">Add entry</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input type="text" id="hosts-ip-input" class="input" style="width:160px" placeholder="127.0.0.1" />
+        <input type="text" id="hosts-host-input" class="input" style="flex:1;min-width:160px" data-i18n="hosts.host_placeholder" />
+        <button class="btn btn-primary" id="hosts-add-btn" data-i18n="hosts.add">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Entries list -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--accent2)"></div>
+        <span data-i18n="hosts.entries">Entries</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div id="hosts-list">
+        <div style="color:var(--text3);font-size:11px" data-i18n="common.loading">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="height:80px"></div>
+
+<div id="hosts-batch-bar" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);align-items:center;gap:12px;padding:10px 18px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:50;white-space:nowrap">
+  <span id="hosts-selected-count" style="font-size:12px;color:var(--text2)"></span>
+  <button class="btn btn-danger" id="hosts-delete-selected" style="font-size:12px" data-i18n="hosts.delete_selected">Delete selected</button>
+</div>

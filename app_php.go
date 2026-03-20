@@ -2,6 +2,7 @@ package main
 
 import (
 	"nginxpanel/internal/cache"
+	"nginxpanel/internal/notify"
 	"nginxpanel/internal/php"
 	"nginxpanel/internal/system"
 	"os/exec"
@@ -55,6 +56,7 @@ func (a *App) StartPHP(version string) bool {
 }
 
 func (a *App) StopPHP(version string) bool {
+	notify.SuppressNext("PHP-FPM_" + version)
 	err := php.Stop(version)
 	return err == nil
 }

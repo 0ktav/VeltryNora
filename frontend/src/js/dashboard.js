@@ -5,10 +5,12 @@ import {
   GetServicesStatus,
   GetSystemStats,
   IsOnline,
+  CheckPortConflicts,
+  KillProcess,
 } from "../../wailsjs/go/main/App";
 import { t } from "./i18n.js";
 
-let statsInterval, servicesInterval, onlineInterval;
+let statsInterval, servicesInterval, onlineInterval, conflictsInterval;
 
 function updateStats() {
   GetSystemStats().then((s) => {
@@ -207,14 +209,55 @@ export function init() {
   updateStats();
   updateServices();
   updateOnlineStatus();
+  updatePortConflicts();
 
   statsInterval = setInterval(updateStats, 3000);
   servicesInterval = setInterval(updateServices, 5000);
   onlineInterval = setInterval(updateOnlineStatus, 10000);
+  conflictsInterval = setInterval(updatePortConflicts, 10000);
 }
 
 export function destroy() {
   clearInterval(statsInterval);
   clearInterval(servicesInterval);
   clearInterval(onlineInterval);
+  clearInterval(conflictsInterval);
+}
+
+// ── Port conflicts ─────────────────────────────────────────────────────────────
+
+async function updatePortConflicts() {
+  const panel = document.getElementById("port-conflicts-panel");
+  const list = document.getElementById("port-conflicts-list");
+  if (!panel || !list) return;
+
+  const conflicts = await CheckPortConflicts();
+
+  if (!conflicts || conflicts.length === 0) {
+    panel.style.display = "none";
+    return;
+  }
+
+  panel.style.display = "block";
+  list.innerHTML = conflicts.map((c) => `
+    <div class="version-item" style="margin-bottom:4px">
+      <div class="version-row" style="gap:10px">
+        <span class="version-badge" style="color:var(--danger);border-color:rgba(220,56,44,0.3);font-family:var(--font-mono)">:${c.port}</span>
+        <span style="font-size:12px;color:var(--text2);font-weight:600">${c.service}</span>
+        <span style="font-size:11px;color:var(--text3)">${t("dash.blocked_by")} <strong style="color:var(--text)">${c.process_name}</strong> (PID ${c.pid})</span>
+      </div>
+      <div class="version-actions">
+        <button class="btn btn-danger" style="font-size:11px" data-pid="${c.pid}" data-port="${c.port}" id="kill-btn-${c.pid}">${t("dash.kill_process")}</button>
+      </div>
+    </div>
+  `).join("");
+
+  conflicts.forEach((c) => {
+    document.getElementById(`kill-btn-${c.pid}`)?.addEventListener("click", async (e) => {
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      await KillProcess(c.pid);
+      await updatePortConflicts();
+    });
+  });
 }

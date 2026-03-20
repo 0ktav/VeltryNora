@@ -8,6 +8,7 @@ const pageModules = {
   redis: () => import("./redis.js"),
   mysql: () => import("./mysql.js"),
   sites: () => import("./sites.js"),
+  hosts: () => import("./hosts.js"),
   utils: () => import("./toolbox.js"),
   settings: () => import("./settings.js"),
   about: () => import("./about.js"),

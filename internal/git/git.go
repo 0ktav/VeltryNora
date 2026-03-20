@@ -22,18 +22,31 @@ func gitExe() string {
 }
 
 // GetVersion returns the installed git version string, or "" if not installed.
+// Checks the app-managed binary first, then falls back to the system PATH.
 func GetVersion() string {
 	exe := gitExe()
-	if _, err := os.Stat(exe); err != nil {
+	if _, err := os.Stat(exe); err == nil {
+		out, err := winexec.Command(exe, "--version").Output()
+		if err == nil {
+			return parseVersion(string(out))
+		}
+	}
+
+	// Fallback: check system PATH
+	out, err := winexec.Command("where", "git").Output()
+	if err != nil || strings.TrimSpace(string(out)) == "" {
 		return ""
 	}
-	out, err := winexec.Command(exe, "--version").Output()
+	out, err = winexec.Command("git", "--version").Output()
 	if err != nil {
 		return ""
 	}
-	s := strings.TrimSpace(string(out))
+	return parseVersion(string(out)) + " (system)"
+}
+
+func parseVersion(out string) string {
+	s := strings.TrimSpace(out)
 	s = strings.TrimPrefix(s, "git version ")
-	// Strip ".windows.N" suffix
 	if idx := strings.Index(s, ".windows"); idx >= 0 {
 		s = s[:idx]
 	}

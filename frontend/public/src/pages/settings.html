@@ -43,9 +43,33 @@
         </div>
         <div class="settings-control">
           <div class="lang-selector" id="theme-selector">
+            <button class="lang-btn" data-theme-val="system" data-i18n="settings.theme_system">System</button>
             <button class="lang-btn" data-theme-val="dark" data-i18n="settings.theme_dark">Dark</button>
             <button class="lang-btn" data-theme-val="light" data-i18n="settings.theme_light">Light</button>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Browser -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--accent2)"></div>
+        <span data-i18n="settings.browser">Browser</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="settings.browser">Browser</div>
+          <div class="settings-label-desc" data-i18n="settings.browser_desc">Browser used when opening sites from the app</div>
+        </div>
+        <div class="settings-control">
+          <select id="preferred-browser-select" class="select" style="min-width:180px">
+            <option value="" data-i18n="settings.browser_default">System default</option>
+          </select>
         </div>
       </div>
     </div>
@@ -83,6 +107,47 @@
         <div class="settings-control">
           <label class="toggle" id="start-on-boot-toggle">
             <input type="checkbox" id="start-on-boot-checkbox" />
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--accent2)"></div>
+        <span data-i18n="settings.notifications">Notifications</span>
+      </div>
+    </div>
+    <div class="panel-body">
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="settings.notify_service_crash">Service crash alerts</div>
+          <div class="settings-label-desc" data-i18n="settings.notify_service_crash_desc">Show a notification when a service stops unexpectedly</div>
+        </div>
+        <div class="settings-control">
+          <label class="toggle">
+            <input type="checkbox" id="notify-crash-checkbox" />
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <div class="settings-label-title" data-i18n="settings.notify_op_fail">Operation failure alerts</div>
+          <div class="settings-label-desc" data-i18n="settings.notify_op_fail_desc">Show a notification when an installation or operation fails</div>
+        </div>
+        <div class="settings-control">
+          <label class="toggle">
+            <input type="checkbox" id="notify-fail-checkbox" />
             <span class="toggle-track"></span>
             <span class="toggle-thumb"></span>
           </label>

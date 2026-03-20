@@ -64,24 +64,47 @@ func compareSemver(a, b string) int {
 	return 0
 }
 
-// CheckComposer returns the composer version string if installed, or empty string.
-// Only uses app-managed PHP — never falls back to a system PHP that may be outdated.
-func (a *App) CheckComposer() string {
+// resolveComposerArgs returns the command + args to invoke Composer.
+// Prefers the app-managed phar, falls back to system composer in PATH.
+// Returns nil if composer is not available.
+func resolveComposerArgs() []string {
 	phar := composerPharPath()
-	if _, err := os.Stat(phar); err != nil {
+	if _, err := os.Stat(phar); err == nil {
+		phpExe := phpExeForVersion("")
+		if phpExe != "php" {
+			return []string{phpExe, phar}
+		}
+	}
+
+	// Fallback: system composer in PATH
+	out, err := winexec.Command("where", "composer").Output()
+	if err == nil && strings.TrimSpace(string(out)) != "" {
+		return []string{"composer"}
+	}
+	return nil
+}
+
+// CheckComposer returns the composer version string if installed, or empty string.
+// Checks the app-managed phar first, then falls back to system PATH.
+func (a *App) CheckComposer() string {
+	args := resolveComposerArgs()
+	if args == nil {
 		return ""
 	}
-	phpExe := phpExeForVersion("")
-	if phpExe == "php" {
-		// No managed PHP found — phar exists but we can't verify version
-		return "installed"
-	}
-	out, err := winexec.Command(phpExe, phar, "--version", "--no-ansi").Output()
+
+	versionArgs := append(args, "--version", "--no-ansi")
+	out, err := winexec.Command(versionArgs[0], versionArgs[1:]...).Output()
 	if err != nil {
 		return "installed"
 	}
 	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
-	return strings.TrimSpace(lines[0])
+	version := strings.TrimSpace(lines[0])
+
+	// Mark as system if not using the managed phar
+	if args[0] == "composer" {
+		version += " (system)"
+	}
+	return version
 }
 
 // InstallComposer downloads composer.phar and creates composer.bat.
@@ -159,7 +182,6 @@ func (a *App) CreateLaravelProject(domain string, phpVersion string) bool {
 	}
 
 	phpExe := phpExeForVersion(phpVersion)
-	phar := composerPharPath()
 
 	checkExt := func(name string) bool {
 		o, _ := winexec.Command(phpExe, "-r", "echo extension_loaded('"+name+"') ? '1' : '0';").Output()
@@ -179,7 +201,16 @@ func (a *App) CreateLaravelProject(domain string, phpVersion string) bool {
 		runtime.EventsEmit(a.ctx, "laravel-output", "Tip: enable zip in the PHP Extensions panel for faster installs.")
 	}
 
-	cmd := winexec.Command(phpExe, phar, "create-project", "laravel/laravel", ".", "--no-interaction", "--no-ansi")
+	composerArgs := resolveComposerArgs()
+	if composerArgs == nil {
+		applog.Error("Laravel: composer not found")
+		runtime.EventsEmit(a.ctx, "laravel-output", "ERROR: Composer is not installed.")
+		runtime.EventsEmit(a.ctx, "laravel-done", false)
+		return false
+	}
+
+	cmdArgs := append(composerArgs, "create-project", "laravel/laravel", ".", "--no-interaction", "--no-ansi")
+	cmd := winexec.Command(cmdArgs[0], cmdArgs[1:]...)
 	cmd.Dir = projectDir
 
 	stdout, err := cmd.StdoutPipe()

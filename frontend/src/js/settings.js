@@ -6,6 +6,7 @@ import {
   GetDefaultBasePath,
   BrowseFolder,
   StopAllServices,
+  GetInstalledBrowsers,
 } from "../../wailsjs/go/main/App";
 
 let _persistTimer = null;
@@ -20,14 +21,27 @@ export function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
 }
 
+function getSystemTheme() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
 export function loadTheme() {
-  const saved = localStorage.getItem("veltrynora-theme") || "dark";
-  applyTheme(saved);
+  const saved = localStorage.getItem("veltrynora-theme") || "system";
+  if (saved === "system") {
+    applyTheme(getSystemTheme());
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+      if ((localStorage.getItem("veltrynora-theme") || "system") === "system") {
+        applyTheme(e.matches ? "dark" : "light");
+      }
+    });
+  } else {
+    applyTheme(saved);
+  }
 }
 
 function saveTheme(theme) {
   localStorage.setItem("veltrynora-theme", theme);
-  applyTheme(theme);
+  applyTheme(theme === "system" ? getSystemTheme() : theme);
 }
 
 // ── Settings page ─────────────────────────────────────────────────────────────
@@ -49,7 +63,7 @@ export async function init() {
   updateLangBtns();
 
   // Current theme
-  const currentTheme = localStorage.getItem("veltrynora-theme") || "dark";
+  const currentTheme = localStorage.getItem("veltrynora-theme") || "system";
   updateThemeBtns(currentTheme);
 
   // Load settings from Go backend
@@ -84,6 +98,21 @@ export async function init() {
   // Nginx keepalive
   const keepaliveInput = document.getElementById("nginx-keepalive-input");
   if (keepaliveInput) keepaliveInput.value = String(s.nginx_keepalive ?? 65);
+
+  // Preferred browser
+  const browserSelect = document.getElementById("preferred-browser-select");
+  if (browserSelect) {
+    const browsers = await GetInstalledBrowsers();
+    browserSelect.innerHTML =
+      `<option value="">${t("settings.browser_default")}</option>` +
+      browsers.map((b) => `<option value="${b.path}"${s.preferred_browser === b.path ? " selected" : ""}>${b.name}</option>`).join("");
+  }
+
+  // Notifications
+  const notifyCrashCb = document.getElementById("notify-crash-checkbox");
+  if (notifyCrashCb) notifyCrashCb.checked = s.notify_service_crash;
+  const notifyFailCb = document.getElementById("notify-fail-checkbox");
+  if (notifyFailCb) notifyFailCb.checked = s.notify_operation_fail;
 
   // Show app log
   const showLogCb = document.getElementById("show-app-log-checkbox");
@@ -175,6 +204,19 @@ export async function init() {
     .getElementById("nginx-keepalive-input")
     ?.addEventListener("change", () => debouncedPersist());
 
+  // ── Preferred browser ─────────────────────────────────────────────────────────
+  document
+    .getElementById("preferred-browser-select")
+    ?.addEventListener("change", () => debouncedPersist());
+
+  // ── Notification toggles ──────────────────────────────────────────────────────
+  document
+    .getElementById("notify-crash-checkbox")
+    ?.addEventListener("change", () => debouncedPersist());
+  document
+    .getElementById("notify-fail-checkbox")
+    ?.addEventListener("change", () => debouncedPersist());
+
   // ── Show app log toggle ───────────────────────────────────────────────────────
   document
     .getElementById("show-app-log-checkbox")
@@ -205,6 +247,12 @@ async function persistSettings() {
     ),
     show_app_log:
       document.getElementById("show-app-log-checkbox")?.checked || false,
+    preferred_browser:
+      document.getElementById("preferred-browser-select")?.value || "",
+    notify_service_crash:
+      document.getElementById("notify-crash-checkbox")?.checked || false,
+    notify_operation_fail:
+      document.getElementById("notify-fail-checkbox")?.checked || false,
     theme,
     language: getLang(),
   });

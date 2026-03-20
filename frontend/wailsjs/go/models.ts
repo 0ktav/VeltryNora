@@ -11,6 +11,9 @@ export namespace config {
 	    nginx_keepalive: number;
 	    minimize_to_tray: boolean;
 	    show_app_log: boolean;
+	    preferred_browser: string;
+	    notify_service_crash: boolean;
+	    notify_operation_fail: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new AppSettings(source);
@@ -28,6 +31,32 @@ export namespace config {
 	        this.nginx_keepalive = source["nginx_keepalive"];
 	        this.minimize_to_tray = source["minimize_to_tray"];
 	        this.show_app_log = source["show_app_log"];
+	        this.preferred_browser = source["preferred_browser"];
+	        this.notify_service_crash = source["notify_service_crash"];
+	        this.notify_operation_fail = source["notify_operation_fail"];
+	    }
+	}
+
+}
+
+export namespace hosts {
+	
+	export class HostEntry {
+	    ip: string;
+	    host: string;
+	    enabled: boolean;
+	    system: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new HostEntry(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ip = source["ip"];
+	        this.host = source["host"];
+	        this.enabled = source["enabled"];
+	        this.system = source["system"];
 	    }
 	}
 
@@ -137,6 +166,7 @@ export namespace sites {
 	    root: string;
 	    php: string;
 	    active: boolean;
+	    laravel_version: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Site(source);
@@ -149,6 +179,7 @@ export namespace sites {
 	        this.root = source["root"];
 	        this.php = source["php"];
 	        this.active = source["active"];
+	        this.laravel_version = source["laravel_version"];
 	    }
 	}
 
@@ -156,6 +187,38 @@ export namespace sites {
 
 export namespace system {
 	
+	export class Browser {
+	    name: string;
+	    path: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Browser(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.path = source["path"];
+	    }
+	}
+	export class PortConflict {
+	    port: number;
+	    service: string;
+	    pid: number;
+	    process_name: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PortConflict(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.port = source["port"];
+	        this.service = source["service"];
+	        this.pid = source["pid"];
+	        this.process_name = source["process_name"];
+	    }
+	}
 	export class ServiceStatus {
 	    name: string;
 	    version: string;

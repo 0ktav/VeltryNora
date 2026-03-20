@@ -9,6 +9,7 @@ import {
   OpenFolder,
   RestartNginx,
   IsPHPRunning,
+  IsNginxRunning,
   GetSiteRewrites,
   SaveSiteRewrites,
   BrowseHtaccessFile,
@@ -18,6 +19,9 @@ import {
   CheckComposer,
   CreateLaravelProject,
   ChangeSitePHP,
+  OpenInBrowser,
+  RunArtisan,
+  RunLaravelUpdate,
 } from "../../wailsjs/go/main/App";
 import { EventsOn, EventsOff } from "../../wailsjs/runtime/runtime";
 import { alert, confirm, confirmWithCheckbox } from "./modal.js";
@@ -31,6 +35,7 @@ let isDeleting = false;
 let isToggling = false;
 let currentSites = [];
 let currentSiteLogType = {};
+let searchQuery = "";
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 
@@ -46,6 +51,7 @@ export function init() {
       else if (action === "rewrites") await openRewritesPanel(name);
       else if (action === "log") await openLogPanel(name);
       else if (action === "change-php") await openChangePHPPanel(name);
+      else if (action === "laravel") await openLaravelPanel(name);
       else if (action === "toggle") await toggleSite(btn, name);
       else if (action === "delete") await deleteSite(name);
     });
@@ -57,6 +63,14 @@ export function init() {
 async function loadSitesPage() {
   await renderSites();
   addListener("sites-fab-btn", () => openNewSiteModal());
+
+  const searchInput = document.getElementById("sites-search");
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      searchQuery = searchInput.value;
+      renderFilteredSites();
+    });
+  }
 }
 
 // ── Render ─────────────────────────────────────────────────────────────────────
@@ -74,24 +88,55 @@ async function renderSites() {
   const sites = await GetSites();
   currentSites = sites;
 
+  const searchWrap = document.getElementById("sites-search-wrap");
+  if (searchWrap) searchWrap.style.display = sites.length > 0 ? "block" : "none";
+
   if (sites.length === 0) {
     list.innerHTML = `<div style="color:var(--text3);font-size:11px">${t("sites.no_sites")}</div>`;
     return;
   }
 
+  const nginxRunning = await IsNginxRunning();
   const rows = await Promise.all(
     sites.map(async (site) => {
       const phpRunning =
         site.php && site.php !== "0" ? await IsPHPRunning(site.php) : null;
-      return buildSiteRow(site, phpRunning);
+      return buildSiteRow(site, phpRunning, nginxRunning);
     }),
   );
 
-  list.innerHTML = rows.join("");
+  // Cache rendered rows by site name for filtering
+  list._allRows = Object.fromEntries(
+    sites.map((site, i) => [site.name, rows[i]])
+  );
+
+  renderFilteredSites();
+}
+
+function renderFilteredSites() {
+  const list = document.getElementById("sites-list");
+  if (!list || !list._allRows) return;
+
+  const q = searchQuery.trim().toLowerCase();
+  const filtered = q
+    ? currentSites.filter(
+        (s) =>
+          s.domain.toLowerCase().includes(q) ||
+          s.root.toLowerCase().includes(q),
+      )
+    : currentSites;
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="color:var(--text3);font-size:11px">${t("sites.no_results")}</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map((s) => list._allRows[s.name]).join("");
   setTimeout(() => createIcons({ icons }), 0);
 }
 
-function buildSiteRow(site, phpRunning) {
+function buildSiteRow(site, phpRunning, nginxRunning) {
+  const nginxLabel = `<span class="site-meta" style="color:${nginxRunning ? "var(--good)" : "var(--danger)"}" title="${nginxRunning ? t("sites.nginx_running") : t("sites.nginx_stopped")}">nginx</span>`;
   const phpLabel =
     site.php && site.php !== "0"
       ? `<span class="site-meta" style="color:${phpRunning ? "var(--good)" : "var(--danger)"}">PHP ${site.php}</span>`
@@ -107,6 +152,7 @@ function buildSiteRow(site, phpRunning) {
         <div class="version-row" style="flex-direction:column;align-items:flex-start;gap:3px">
           <div style="display:flex;align-items:center;gap:8px">
             <span class="version-badge" style="color:var(--accent);border-color:rgba(0,212,170,0.25)">${escapeHtml(site.domain)}</span>
+            ${nginxLabel}
             ${phpLabel}
           </div>
           <span class="site-path" title="${escapeHtml(site.root)}">${escapeHtml(shortPath(site.root))}</span>
@@ -122,6 +168,7 @@ function buildSiteRow(site, phpRunning) {
           <button class="btn btn-secondary btn-icon" data-action="change-php" data-name="${site.name}" title="${t("sites.change_php")}">
             <i data-lucide="cpu"></i>
           </button>
+          ${site.laravel_version ? `<button class="btn btn-secondary btn-icon" data-action="laravel" data-name="${site.name}" title="${t("sites.laravel_panel")}" style="color:var(--accent3)"><i data-lucide="flame"></i></button>` : ""}
           <button class="btn btn-secondary btn-icon" data-action="rewrites" data-name="${site.name}" title="${t("sites.rewrites")}">
             <i data-lucide="route"></i>
           </button>
@@ -139,6 +186,7 @@ function buildSiteRow(site, phpRunning) {
       <div class="php-config-panel" id="site-php-${site.name}" style="display:none"></div>
       <div class="php-config-panel" id="site-rewrites-${site.name}" style="display:none"></div>
       <div class="php-config-panel" id="site-log-${site.name}" style="display:none"></div>
+      <div class="php-config-panel" id="site-laravel-${site.name}" style="display:none"></div>
     </div>
   `;
 }
@@ -247,7 +295,7 @@ async function openNewSiteModal() {
       <div id="laravel-requirements" style="display:none;margin-top:16px;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-size:11px">
         <div style="color:var(--text2);font-weight:600;margin-bottom:6px">${t("sites.laravel_requirements")}</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">
-          ${["openssl", "mbstring", "curl"]
+          ${["openssl", "mbstring", "curl", "fileinfo"]
             .map((e) => `<span style="padding:1px 7px;border-radius:4px;background:rgba(0,201,160,0.12);color:var(--accent);font-family:var(--font-mono)">${e}</span>`)
             .join("")}
           ${["pdo_mysql", "pdo_sqlite"]
@@ -531,7 +579,7 @@ async function runLaravelInModal(
 // ── Actions ────────────────────────────────────────────────────────────────────
 
 async function openSite(domain) {
-  window.open("http://" + domain, "_blank");
+  OpenInBrowser("http://" + domain);
 }
 
 async function openRoot(root) {
@@ -592,12 +640,12 @@ async function openChangePHPPanel(name) {
   const currentPHP = site?.php ?? "";
 
   const options = [
-    `<option value="">${t("sites.no_php")}</option>`,
+    `<option value=""${!currentPHP ? " selected" : ""}>${t("sites.no_php")}</option>`,
     ...phpVersions
       .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
       .map(
         (v) =>
-          `<option value="${v}"${v === currentPHP ? " selected" : ""}>${v}</option>`,
+          `<option value="${v}"${v === currentPHP || v.startsWith(currentPHP + ".") ? " selected" : ""}>${v}</option>`,
       ),
   ].join("");
 
@@ -752,4 +800,145 @@ async function refreshSiteLog(panel, name) {
       await ClearLog((currentSiteLogType[name] || "site-access") + ":" + name);
       await refreshSiteLog(panel, name);
     });
+}
+
+// ── Panel: Laravel ─────────────────────────────────────────────────────────────
+
+const ARTISAN_COMMANDS = [
+  { cmd: "optimize:clear", icon: "trash-2", label: "optimize:clear" },
+  { cmd: "cache:clear", icon: "database", label: "cache:clear" },
+  { cmd: "config:clear", icon: "settings", label: "config:clear" },
+  { cmd: "config:cache", icon: "save", label: "config:cache" },
+  { cmd: "view:clear", icon: "layout", label: "view:clear" },
+  { cmd: "route:clear", icon: "route", label: "route:clear" },
+  { cmd: "storage:link", icon: "link", label: "storage:link" },
+  { cmd: "migrate:status", icon: "table", label: "migrate:status" },
+  { cmd: "migrate", icon: "play", label: "migrate", confirm: true },
+];
+
+async function openLaravelPanel(name) {
+  const panel = document.getElementById(`site-laravel-${name}`);
+  if (!panel) return;
+
+  if (panel.style.display !== "none") {
+    EventsOff(`laravel-update-output-${name}`);
+    EventsOff(`laravel-update-done-${name}`);
+    panel.style.display = "none";
+    return;
+  }
+
+  panel.style.display = "block";
+
+  const site = currentSites.find((s) => s.name === name);
+  const version = site?.laravel_version || "";
+
+  const artisanButtons = ARTISAN_COMMANDS.map(
+    (c) => `
+    <button
+      class="btn btn-secondary artisan-btn"
+      data-cmd="${c.cmd}"
+      style="font-family:var(--font-mono);font-size:10px;padding:4px 9px"
+    ><i data-lucide="${c.icon}" style="width:11px;height:11px"></i> ${c.label}</button>
+  `,
+  ).join("");
+
+  panel.innerHTML = `
+    <div class="php-config-body">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;font-weight:600;color:var(--accent3)"><i data-lucide="flame" style="width:13px;height:13px;vertical-align:-2px"></i> Laravel</span>
+          ${version ? `<span style="font-size:10px;padding:1px 8px;border-radius:999px;background:rgba(255,99,35,0.12);color:var(--accent3);font-family:var(--font-mono)">${escapeHtml(version)}</span>` : ""}
+        </div>
+        <button class="btn btn-secondary" id="laravel-update-btn-${name}" style="font-size:11px;gap:5px">
+          <i data-lucide="arrow-up-circle" style="width:12px;height:12px"></i> ${t("sites.laravel_upgrade")}
+        </button>
+      </div>
+      <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">${t("sites.laravel_artisan")}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
+        ${artisanButtons}
+      </div>
+      <pre id="laravel-output-${name}" class="log-viewer" style="min-height:48px;max-height:200px;font-size:10px;display:none"></pre>
+    </div>
+  `;
+
+  setTimeout(() => createIcons({ icons }), 0);
+
+  // Artisan command buttons
+  panel.querySelectorAll(".artisan-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const cmd = btn.dataset.cmd;
+      const isConfirm = ARTISAN_COMMANDS.find((c) => c.cmd === cmd)?.confirm;
+      if (isConfirm) {
+        const ok = await confirm(
+          "Artisan",
+          t("sites.laravel_migrate_confirm"),
+          "warn",
+        );
+        if (!ok) return;
+      }
+
+      const outputEl = document.getElementById(`laravel-output-${name}`);
+      outputEl.style.display = "block";
+      outputEl.style.color = "";
+      outputEl.textContent = t("sites.laravel_running");
+
+      setLaravelPanelBusy(panel, true);
+      const result = await RunArtisan(name, site?.php ?? "", cmd);
+      setLaravelPanelBusy(panel, false);
+
+      const isError = result.startsWith("ERROR:");
+      outputEl.style.color = isError ? "var(--danger)" : "";
+      outputEl.textContent = result || "(no output)";
+    });
+  });
+
+  // Upgrade button
+  document.getElementById(`laravel-update-btn-${name}`)?.addEventListener("click", async () => {
+    const ok = await confirm("Laravel", t("sites.laravel_update_confirm"), "warn");
+    if (!ok) return;
+
+    const outputEl = document.getElementById(`laravel-output-${name}`);
+    outputEl.style.display = "block";
+    outputEl.style.color = "";
+    outputEl.innerHTML = "";
+
+    const updateBtn = document.getElementById(`laravel-update-btn-${name}`);
+    updateBtn.disabled = true;
+    updateBtn.innerHTML = `<span class="spinner"></span> ${t("sites.laravel_updating")}`;
+    setLaravelPanelBusy(panel, true);
+
+    const appendLine = (line) => {
+      const span = document.createElement("span");
+      span.textContent = line + "\n";
+      outputEl.appendChild(span);
+      outputEl.scrollTop = outputEl.scrollHeight;
+    };
+
+    EventsOn("laravel-update-output", appendLine);
+    EventsOn("laravel-update-done", async (ok) => {
+      EventsOff("laravel-update-output");
+      EventsOff("laravel-update-done");
+
+      setLaravelPanelBusy(panel, false);
+      updateBtn.disabled = false;
+      updateBtn.innerHTML = `<i data-lucide="arrow-up-circle" style="width:12px;height:12px"></i> ${t("sites.laravel_upgrade")}`;
+      createIcons({ icons });
+
+      if (ok) {
+        updateBtn.style.color = "var(--good)";
+        appendLine("\n✓ " + t("sites.laravel_update_done"));
+        // Refresh sites to pick up new Laravel version
+        await renderSites();
+      } else {
+        appendLine("\n✗ " + t("sites.laravel_update_error"));
+        outputEl.style.color = "var(--danger)";
+      }
+    });
+
+    RunLaravelUpdate(name, site?.php ?? "");
+  });
+}
+
+function setLaravelPanelBusy(panel, busy) {
+  panel.querySelectorAll(".artisan-btn").forEach((b) => (b.disabled = busy));
 }

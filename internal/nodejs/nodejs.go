@@ -22,16 +22,26 @@ func nodeExe() string {
 }
 
 // GetVersion returns the installed Node.js version, or "" if not installed.
+// Checks the app-managed binary first, then falls back to the system PATH.
 func GetVersion() string {
 	exe := nodeExe()
-	if _, err := os.Stat(exe); err != nil {
+	if _, err := os.Stat(exe); err == nil {
+		out, err := winexec.Command(exe, "--version").Output()
+		if err == nil {
+			return strings.TrimSpace(string(out))
+		}
+	}
+
+	// Fallback: check system PATH
+	out, err := winexec.Command("where", "node").Output()
+	if err != nil || strings.TrimSpace(string(out)) == "" {
 		return ""
 	}
-	out, err := winexec.Command(exe, "--version").Output()
+	out, err = winexec.Command("node", "--version").Output()
 	if err != nil {
 		return ""
 	}
-	return strings.TrimSpace(string(out)) // e.g. "v22.11.0"
+	return strings.TrimSpace(string(out)) + " (system)"
 }
 
 type nodeRelease struct {

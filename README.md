@@ -4,12 +4,15 @@ A lightweight Windows desktop app for managing a local web development environme
 
 ## Features
 
-- **Nginx** — install, switch versions, start/stop/restart
-- **PHP** — install multiple versions, start/stop, configure php.ini, manage extensions
-- **Redis** — install, switch versions, start/stop
-- **Sites** — create virtual hosts with automatic `hosts` file entry, change PHP version per site, manage rewrite rules, import `.htaccess`
-- **Laravel** — create new Laravel projects via Composer directly from the UI
-- **Tools** — portable Git, Node.js, Composer management
+- **Nginx** — install, switch versions, start/stop/restart/reload
+- **PHP** — install multiple versions simultaneously, start/stop per version, configure `php.ini`, manage extensions
+- **Redis** — install, start/stop/restart, run commands interactively from the UI
+- **Sites** — create virtual hosts with automatic `hosts` file entry, change PHP version per site, manage rewrite rules, import `.htaccess`, open in browser, real-time search
+- **Laravel** — create new projects via Composer, auto-detect existing projects, show framework version, run artisan commands, upgrade framework with streaming output
+- **Hosts file editor** — view, add, enable/disable and delete Windows hosts file entries
+- **Dashboard** — live CPU/RAM/disk stats, service status, port conflict detector
+- **Tools** — portable Git, Node.js, Composer (or use system-installed ones automatically)
+- **Notifications** — Windows toast alerts when a service crashes unexpectedly
 - **Logs** — view and clear Nginx access/error logs per site
 - Multilingual interface: English, Romanian, Russian
 
@@ -21,10 +24,9 @@ A lightweight Windows desktop app for managing a local web development environme
 
 ## Download
 
-Download the latest release from the [Releases](../../releases/latest) page:
+Download the latest installer from the [Releases](../../releases/latest) page:
 
-- **`VeltryNora-Setup.exe`** — recommended, installs the app and creates shortcuts
-- **`VeltryNora.exe`** — portable, run directly without installation (requires Administrator)
+- **`VeltryNora-Setup.exe`** — installs the app and creates shortcuts (requires Administrator for first run)
 
 ## Build from source
 

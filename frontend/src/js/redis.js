@@ -1,6 +1,7 @@
 import {
   DeleteRedisVersion,
   DownloadRedis,
+  ExecRedisCommand,
   GetRedisActiveVersion,
   GetRedisAvailableVersions,
   GetRedisInstalledVersions,
@@ -246,6 +247,55 @@ async function deleteRedisVersion(version) {
   }
 }
 
+function initCommandsPanel() {
+  const toggle = document.getElementById("redis-cmd-toggle");
+  const body = document.getElementById("redis-cmd-body");
+  const chevron = document.getElementById("redis-cmd-chevron");
+
+  toggle?.addEventListener("click", () => {
+    const open = body.style.display === "none";
+    body.style.display = open ? "block" : "none";
+    if (chevron) chevron.style.transform = open ? "rotate(180deg)" : "";
+  });
+
+  // Quick action buttons
+  body?.querySelectorAll("button[data-cmd]").forEach((btn) => {
+    btn.addEventListener("click", () => runRedisCmd(btn.dataset.cmd));
+  });
+
+  // FLUSHDB with confirmation
+  document.getElementById("redis-quick-flush")?.addEventListener("click", async () => {
+    const ok = await confirm(t("redis.flush_title"), t("redis.flush_confirm"), "danger");
+    if (!ok) return;
+    runRedisCmd("FLUSHDB");
+  });
+
+  // Custom command input
+  const input = document.getElementById("redis-cmd-input");
+  const runBtn = document.getElementById("redis-cmd-run");
+  input?.setAttribute("placeholder", t("redis.cmd_placeholder"));
+
+  runBtn?.addEventListener("click", () => {
+    const cmd = input?.value.trim();
+    if (cmd) runRedisCmd(cmd);
+  });
+
+  input?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const cmd = input.value.trim();
+      if (cmd) runRedisCmd(cmd);
+    }
+  });
+}
+
+async function runRedisCmd(cmd) {
+  const output = document.getElementById("redis-cmd-output");
+  if (!output) return;
+  output.textContent = "...";
+  const result = await ExecRedisCommand(cmd);
+  output.textContent = result || t("redis.output_empty");
+}
+
 export function init() {
   const list = document.getElementById("redis-versions-list");
   if (list) {
@@ -259,6 +309,7 @@ export function init() {
   }
 
   loadRedisPage();
+  initCommandsPanel();
 
   let redisLogLoaded = false;
 

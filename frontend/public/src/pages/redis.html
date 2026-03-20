@@ -80,6 +80,33 @@
     </div>
   </div>
 
+  <!-- Commands -->
+  <div class="panel">
+    <div class="panel-header accordion-header" id="redis-cmd-toggle" style="cursor:pointer">
+      <div class="panel-title">
+        <div class="dot" style="background:var(--accent)"></div>
+        <span data-i18n="redis.commands">Commands</span>
+      </div>
+      <i data-lucide="chevron-down" id="redis-cmd-chevron" style="color:var(--text3);width:16px;height:16px;transition:transform 0.2s"></i>
+    </div>
+    <div id="redis-cmd-body" style="display:none">
+      <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <button class="btn btn-secondary" data-cmd="PING">PING</button>
+          <button class="btn btn-secondary" data-cmd="DBSIZE">DBSIZE</button>
+          <button class="btn btn-secondary" data-cmd="INFO server">INFO</button>
+          <button class="btn btn-secondary" data-cmd="KEYS *">KEYS *</button>
+          <button class="btn btn-danger" id="redis-quick-flush" data-i18n="redis.flush_db">FLUSHDB</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <input type="text" class="input" id="redis-cmd-input" style="font-family:var(--font-mono);flex:1" />
+          <button class="btn btn-primary" id="redis-cmd-run" data-i18n="redis.run">Run</button>
+        </div>
+        <pre id="redis-cmd-output" class="log-viewer" style="min-height:80px;max-height:220px;margin:0"></pre>
+      </div>
+    </div>
+  </div>
+
   <!-- Logs -->
   <div class="panel">
     <div class="panel-header accordion-header" id="redis-log-toggle" style="cursor:pointer">

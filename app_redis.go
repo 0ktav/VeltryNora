@@ -2,7 +2,9 @@ package main
 
 import (
 	"nginxpanel/internal/cache"
+	"nginxpanel/internal/notify"
 	"nginxpanel/internal/redis"
+	"strings"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -50,11 +52,13 @@ func (a *App) StartRedis() bool {
 }
 
 func (a *App) StopRedis() bool {
+	notify.SuppressNext("Redis_")
 	err := redis.Stop()
 	return err == nil
 }
 
 func (a *App) RestartRedis() bool {
+	notify.SuppressNext("Redis_")
 	active := redis.GetActiveVersion()
 	err := redis.Restart(active)
 	return err == nil
@@ -63,4 +67,16 @@ func (a *App) RestartRedis() bool {
 func (a *App) DeleteRedisVersion(version string) bool {
 	err := redis.DeleteVersion(version)
 	return err == nil
+}
+
+func (a *App) ExecRedisCommand(cmd string) string {
+	parts := strings.Fields(cmd)
+	if len(parts) == 0 {
+		return ""
+	}
+	out, err := redis.ExecCommand(parts...)
+	if err != nil {
+		return "Error: " + err.Error()
+	}
+	return out
 }

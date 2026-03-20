@@ -23,11 +23,12 @@ var indexHTMLTmpl string
 var indexPHPTmpl string
 
 type Site struct {
-	Name   string `json:"name"`
-	Domain string `json:"domain"`
-	Root   string `json:"root"`
-	PHP    string `json:"php"`
-	Active bool   `json:"active"`
+	Name          string `json:"name"`
+	Domain        string `json:"domain"`
+	Root          string `json:"root"`
+	PHP           string `json:"php"`
+	Active        bool   `json:"active"`
+	LaravelVersion string `json:"laravel_version"`
 }
 
 func GetSites() []Site {
@@ -64,6 +65,7 @@ func GetSites() []Site {
 
 		site, err := parseConfig(filepath.Join(sitesPath, name), siteName, active)
 		if err == nil {
+			site.LaravelVersion = GetLaravelInfo(site.Root).Version
 			sites = append(sites, site)
 		}
 	}
@@ -316,7 +318,7 @@ func DeleteSite(name string, deleteFolder bool) error {
 	sitesPath := filepath.Join(basePath, config.ConfigFolder, config.SitesFolder)
 
 	if deleteFolder {
-		site, err := getSiteByName(name)
+		site, err := GetSiteByName(name)
 		if err == nil && site.Root != "" {
 			target := site.Root
 			parent := filepath.Dir(site.Root)
@@ -424,7 +426,7 @@ func ChangeSitePHP(name string, phpVersion string) error {
 	return os.WriteFile(path, []byte(cfg), 0644)
 }
 
-func getSiteByName(name string) (Site, error) {
+func GetSiteByName(name string) (Site, error) {
 	basePath := system.GetBasePath()
 	sitesPath := filepath.Join(basePath, config.ConfigFolder, config.SitesFolder)
 

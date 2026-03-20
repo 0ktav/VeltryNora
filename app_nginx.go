@@ -3,6 +3,7 @@ package main
 import (
 	"nginxpanel/internal/cache"
 	"nginxpanel/internal/nginx"
+	"nginxpanel/internal/notify"
 	"nginxpanel/internal/system"
 	"nginxpanel/internal/winexec"
 	"path/filepath"
@@ -55,11 +56,13 @@ func (a *App) StartNginx() string {
 }
 
 func (a *App) StopNginx() bool {
+	notify.SuppressNext("Nginx_")
 	err := nginx.Stop()
 	return err == nil
 }
 
 func (a *App) RestartNginx() string {
+	notify.SuppressNext("Nginx_")
 	err := nginx.Restart(system.GetBasePath())
 	if err != nil {
 		return err.Error()

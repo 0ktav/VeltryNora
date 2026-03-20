@@ -133,3 +133,12 @@ func DeleteVersion(version string) error {
 	basePath := system.GetBasePath()
 	return os.RemoveAll(filepath.Join(basePath, config.RedisFolder, version))
 }
+
+// ExecCommand runs redis-cli.exe with the given arguments and returns the output.
+func ExecCommand(args ...string) (string, error) {
+	version := GetActiveVersion()
+	basePath := system.GetBasePath()
+	cliPath := filepath.Join(basePath, config.RedisFolder, version, "redis-cli.exe")
+	out, err := winexec.Command(cliPath, args...).Output()
+	return strings.TrimSpace(string(out)), err
+}

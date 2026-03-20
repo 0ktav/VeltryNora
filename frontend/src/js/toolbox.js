@@ -30,6 +30,7 @@ async function renderComposerCard() {
   const version = await CheckComposer();
 
   if (version) {
+    const isSystem = version.endsWith("(system)");
     card.innerHTML = `
       <div class="version-item">
         <div class="version-row">
@@ -37,14 +38,12 @@ async function renderComposerCard() {
             <div class="service-icon" style="background:rgba(47,155,255,0.1);color:var(--accent2);font-size:13px;font-weight:700">C</div>
             <div>
               <div style="font-weight:600;color:var(--text)">${escapeHtml(version)}</div>
-              <div style="color:var(--text3);margin-top:2px">${t("utils.composer_path")}</div>
+              <div style="color:var(--text3);margin-top:2px">${isSystem ? t("utils.system_path") : t("utils.composer_path")}</div>
             </div>
           </div>
           <div class="version-actions">
             <span class="version-badge" style="color:var(--good);border-color:rgba(62,207,110,0.3)">✓ ${t("utils.installed")}</span>
-            <button class="btn btn-secondary btn-icon" id="composer-reinstall-btn" title="${t("utils.reinstall")}">
-              <i data-lucide="refresh-cw"></i>
-            </button>
+            ${!isSystem ? `<button class="btn btn-secondary btn-icon" id="composer-reinstall-btn" title="${t("utils.reinstall")}"><i data-lucide="refresh-cw"></i></button>` : ""}
           </div>
         </div>
       </div>
@@ -91,6 +90,7 @@ async function renderGitCard() {
   const version = await CheckGit();
 
   if (version) {
+    const isSystem = version.endsWith("(system)");
     card.innerHTML = `
       <div class="version-item">
         <div class="version-row">
@@ -98,14 +98,12 @@ async function renderGitCard() {
             <div class="service-icon" style="background:rgba(47,155,255,0.1);color:var(--accent2);font-size:13px;font-weight:700">G</div>
             <div>
               <div style="font-weight:600;color:var(--text)">${escapeHtml(version)}</div>
-              <div style="color:var(--text3);margin-top:2px">${t("utils.git_path")}</div>
+              <div style="color:var(--text3);margin-top:2px">${isSystem ? t("utils.system_path") : t("utils.git_path")}</div>
             </div>
           </div>
           <div class="version-actions">
             <span class="version-badge" style="color:var(--good);border-color:rgba(62,207,110,0.3)">✓ ${t("utils.installed")}</span>
-            <button class="btn btn-secondary btn-icon" id="git-reinstall-btn" title="${t("utils.reinstall")}">
-              <i data-lucide="refresh-cw"></i>
-            </button>
+            ${!isSystem ? `<button class="btn btn-secondary btn-icon" id="git-reinstall-btn" title="${t("utils.reinstall")}"><i data-lucide="refresh-cw"></i></button>` : ""}
           </div>
         </div>
       </div>
@@ -152,6 +150,7 @@ async function renderNodeCard() {
   const version = await CheckNodeJS();
 
   if (version) {
+    const isSystem = version.endsWith("(system)");
     card.innerHTML = `
       <div class="version-item">
         <div class="version-row">
@@ -159,14 +158,12 @@ async function renderNodeCard() {
             <div class="service-icon" style="background:rgba(62,207,110,0.1);color:var(--good);font-size:11px;font-weight:700">JS</div>
             <div>
               <div style="font-weight:600;color:var(--text)">${escapeHtml(version)}</div>
-              <div style="color:var(--text3);margin-top:2px">${t("utils.nodejs_path")}</div>
+              <div style="color:var(--text3);margin-top:2px">${isSystem ? t("utils.system_path") : t("utils.nodejs_path")}</div>
             </div>
           </div>
           <div class="version-actions">
             <span class="version-badge" style="color:var(--good);border-color:rgba(62,207,110,0.3)">✓ ${t("utils.installed")}</span>
-            <button class="btn btn-secondary btn-icon" id="nodejs-reinstall-btn" title="${t("utils.reinstall")}">
-              <i data-lucide="refresh-cw"></i>
-            </button>
+            ${!isSystem ? `<button class="btn btn-secondary btn-icon" id="nodejs-reinstall-btn" title="${t("utils.reinstall")}"><i data-lucide="refresh-cw"></i></button>` : ""}
           </div>
         </div>
       </div>
