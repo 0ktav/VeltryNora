@@ -8,8 +8,16 @@ import (
 	"path/filepath"
 )
 
-func Download(url string, destPath string, onProgress func(int)) error {
-	resp, err := http.Get(url)
+// Download fetches url to destPath, calling onProgress(percent, totalMB) as data arrives.
+// sizeHint provides the total file size when the server omits Content-Length (pass 0 if unknown).
+func Download(url string, destPath string, sizeHint int64, onProgress func(percent int, totalMB float64)) error {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return err
+	}
+	// Disable automatic gzip — Go sets ContentLength=-1 when it decompresses transparently
+	req.Header.Set("Accept-Encoding", "identity")
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -31,6 +39,13 @@ func Download(url string, destPath string, onProgress func(int)) error {
 	defer file.Close()
 
 	totalSize := resp.ContentLength
+	if totalSize <= 0 && sizeHint > 0 {
+		totalSize = sizeHint
+	}
+	totalMB := float64(totalSize) / 1024 / 1024
+	if totalSize <= 0 {
+		totalMB = 0
+	}
 	var downloaded int64
 	buffer := make([]byte, 32*1024)
 
@@ -43,7 +58,10 @@ func Download(url string, destPath string, onProgress func(int)) error {
 			downloaded += int64(n)
 			if totalSize > 0 {
 				percent := int(downloaded * 100 / totalSize)
-				onProgress(percent)
+				onProgress(percent, totalMB)
+			} else {
+				downloadedMB := float64(downloaded) / 1024 / 1024
+				onProgress(-1, downloadedMB)
 			}
 		}
 		if err != nil {

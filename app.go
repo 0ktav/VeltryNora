@@ -9,6 +9,9 @@ import (
 	"nginxpanel/internal/php"
 	"nginxpanel/internal/redis"
 	"nginxpanel/internal/system"
+	"time"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type App struct {
@@ -54,6 +57,15 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
 	go system.StartServiceWatcher(ctx)
+
+	go func() {
+		time.Sleep(3 * time.Second)
+		info := a.CheckForUpdates()
+		if !info.IsUpToDate && info.DownloadURL != "" {
+			runtime.EventsEmit(a.ctx, "update:available", info)
+			notify.Show("VeltryNora", "Version v"+info.LatestVersion+" is available. Open the app to update.")
+		}
+	}()
 
 	s := config.LoadSettings()
 	if s.AutoStart {

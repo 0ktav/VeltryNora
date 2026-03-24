@@ -13,8 +13,8 @@ func (a *App) CheckNodeJS() string {
 
 func (a *App) DownloadNodeJS(addToPath bool) bool {
 	applog.Info("Node.js download started")
-	err := nodejs.Download(addToPath, func(percent int) {
-		runtime.EventsEmit(a.ctx, "nodejs:download-progress", percent)
+	err := nodejs.Download(addToPath, func(percent int, totalMB float64) {
+		runtime.EventsEmit(a.ctx, "nodejs:download-progress", map[string]interface{}{"percent": percent, "totalMB": totalMB})
 	})
 	if err != nil {
 		applog.Errorf("Node.js download failed: %s", err.Error())

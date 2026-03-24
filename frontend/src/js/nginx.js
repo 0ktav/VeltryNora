@@ -13,7 +13,7 @@ import {
   ClearLog,
 } from "../../wailsjs/go/main/App";
 import { alert, confirm } from "./modal.js";
-import { addListener } from "./utils.js";
+import { addListener, pollUntilStopped } from "./utils.js";
 import { runInstall, openInstallModal } from "./installer.js";
 import { t } from "./i18n.js";
 import { createIcons, icons } from "lucide";
@@ -43,6 +43,7 @@ async function loadNginxPage() {
   addListener("nginx-add-btn", () =>
     openInstallModal({
       title: `◎ ${t("common.install_new")}`,
+      serviceName: "Nginx",
       accentColor: "var(--nginx)",
       loadVersionsFn: async () => {
         const [available, installed] = await Promise.all([
@@ -76,6 +77,7 @@ async function loadNginxPage() {
     const btn = document.getElementById("nginx-stop-btn");
     setButtonLoading(btn, t("common.stopping"));
     const ok = await StopNginx();
+    if (ok) await pollUntilStopped(IsNginxRunning);
     resetButton(btn);
     if (ok) await updateNginxStatus();
     else await alert(t("common.error"), t("nginx.stop_error"), "danger");
@@ -196,16 +198,20 @@ async function onInstall() {
     progressId: "nginx-progress-first",
     barId: "nginx-progress-bar-first",
     labelId: "nginx-progress-label-first",
+    sizeId: "nginx-progress-size-first",
     btnId: "nginx-install-btn",
     eventName: "nginx:download-progress",
     downloadFn: DownloadNginx,
+    serviceName: "Nginx",
   });
-  if (result) setTimeout(() => loadNginxPage(), 1000);
+  if (result) await loadNginxPage();
 }
 
-async function activateNginxVersion(version) {
+async function activateNginxVersion(version, btn) {
   if (isActivating) return;
   isActivating = true;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span>`;
 
   try {
     const running = await IsNginxRunning();
@@ -217,6 +223,7 @@ async function activateNginxVersion(version) {
       );
       if (!ok) return;
       await StopNginx();
+      await pollUntilStopped(IsNginxRunning);
     }
 
     await SetNginxActiveVersion(version);
@@ -225,12 +232,18 @@ async function activateNginxVersion(version) {
     await updateNginxStatus();
   } finally {
     isActivating = false;
+    if (document.contains(btn)) {
+      btn.disabled = false;
+      btn.textContent = t("common.activate");
+    }
   }
 }
 
-async function deleteNginxVersion(version) {
+async function deleteNginxVersion(version, btn) {
   if (isDeleting) return;
   isDeleting = true;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span>`;
 
   try {
     const active = await GetNginxActiveVersion();
@@ -248,6 +261,10 @@ async function deleteNginxVersion(version) {
     }
   } finally {
     isDeleting = false;
+    if (document.contains(btn)) {
+      btn.disabled = false;
+      btn.textContent = t("common.delete");
+    }
   }
 }
 
@@ -270,8 +287,8 @@ export function init() {
       const btn = e.target.closest("button[data-action]");
       if (!btn) return;
       const { action, version } = btn.dataset;
-      if (action === "activate") await activateNginxVersion(version);
-      else if (action === "delete") await deleteNginxVersion(version);
+      if (action === "activate") await activateNginxVersion(version, btn);
+      else if (action === "delete") await deleteNginxVersion(version, btn);
     });
   }
 

@@ -1,152 +1,160 @@
-<div class="page active" id="page-mysql">
-  <div class="page-title">
-    <span style="color:var(--mysql)">⬡</span>
-    <span data-i18n="mysql.title">MySQL</span>
-  </div>
+<div class="page-title"><span style="color:var(--mysql)">⬡</span> <span data-i18n="mysql.title">MySQL</span></div>
 
-  <div class="mysql-coming-soon fade-in">
-    <div class="mysql-cs-glow"></div>
-
-    <div class="mysql-cs-icon">
-      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="32" cy="14" rx="20" ry="7" stroke="var(--mysql)" stroke-width="2" fill="rgba(26,122,191,0.08)"/>
-        <path d="M12 14 Q12 27 32 27 Q52 27 52 14" stroke="var(--mysql)" stroke-width="2" fill="none"/>
-        <path d="M12 27 Q12 40 32 40 Q52 40 52 27" stroke="var(--mysql)" stroke-width="2" fill="none"/>
-        <path d="M12 40 Q12 53 32 53 Q52 53 52 40" stroke="var(--mysql)" stroke-width="2" fill="none"/>
-        <line x1="12" y1="14" x2="12" y2="40" stroke="var(--mysql)" stroke-width="2"/>
-        <line x1="52" y1="14" x2="52" y2="40" stroke="var(--mysql)" stroke-width="2"/>
-      </svg>
+<!-- Not installed -->
+<div id="mysql-not-installed">
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--warn)"></div>
+        <span data-i18n="mysql.not_installed">MySQL is not installed</span>
+      </div>
     </div>
-
-    <div class="mysql-cs-badge">Coming Soon</div>
-
-    <h2 class="mysql-cs-title">MySQL Support</h2>
-    <p class="mysql-cs-desc">
-      MySQL integration is currently in development.<br>
-      Install, manage and monitor your databases — right from the panel.
-    </p>
-
-    <div class="mysql-cs-features">
-      <div class="mysql-cs-feature">
-        <span class="mysql-cs-feat-icon">⬡</span>
-        <span>Install &amp; manage MySQL versions</span>
-      </div>
-      <div class="mysql-cs-feature">
-        <span class="mysql-cs-feat-icon">◫</span>
-        <span>Start / Stop / Restart service</span>
-      </div>
-      <div class="mysql-cs-feature">
-        <span class="mysql-cs-feat-icon">◎</span>
-        <span>View logs &amp; monitor status</span>
-      </div>
-      <div class="mysql-cs-feature">
-        <span class="mysql-cs-feat-icon">⊟</span>
-        <span>Edit my.ini configuration</span>
-      </div>
+    <div class="panel-body">
+      <p style="font-size:12px;color:var(--text3);margin-bottom:12px" data-i18n="mysql.install_note">
+        Installation includes database initialization and may take a few minutes.
+      </p>
+      <button class="btn btn-primary" id="mysql-install-btn" data-i18n="common.install">
+        Install
+      </button>
     </div>
   </div>
 </div>
 
-<style>
-.mysql-coming-soon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 56px - 80px);
-  text-align: center;
-  position: relative;
-  padding: 48px 24px;
-}
+<!-- Installed -->
+<div id="mysql-installed" style="display: none" class="page-content">
+  <!-- Active version -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div
+          class="dot"
+          id="mysql-status-dot"
+          style="background: var(--text3)"
+        ></div>
+        <span data-i18n="common.active_version">Active version:</span>
+        <span
+          id="mysql-active-version"
+          style="color: var(--accent); margin-left: 6px"
+          >--</span
+        >
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary btn-hidden" id="mysql-start-btn">
+          ▷ Start
+        </button>
+        <button class="btn btn-warning btn-hidden" id="mysql-stop-btn">
+          ◼ Stop
+        </button>
+        <button class="btn btn-secondary btn-hidden" id="mysql-restart-btn">
+          ↺ Restart
+        </button>
+      </div>
+    </div>
+  </div>
 
-.mysql-cs-glow {
-  position: absolute;
-  width: 480px;
-  height: 480px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(26,122,191,0.08) 0%, transparent 70%);
-  pointer-events: none;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
+  <!-- Installed versions -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background: var(--mysql)"></div>
+        <span data-i18n="common.installed_versions">Installed versions</span>
+      </div>
+      <div class="panel-action" id="mysql-add-btn" data-i18n="common.add_new">
+        + Install new version
+      </div>
+    </div>
+    <div class="panel-body">
+      <div id="mysql-versions-list"></div>
+    </div>
+  </div>
 
-.mysql-cs-icon {
-  width: 96px;
-  height: 96px;
-  border-radius: 24px;
-  background: rgba(26,122,191,0.08);
-  border: 1px solid rgba(26,122,191,0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 24px;
-  box-shadow: 0 0 32px rgba(26,122,191,0.12);
-}
+  <!-- Databases -->
+  <div class="panel" id="mysql-db-panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background:var(--mysql)"></div>
+        <span data-i18n="mysql.databases">Databases</span>
+      </div>
+    </div>
+    <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
+      <!-- Connection info -->
+      <div id="mysql-connection-info" style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center;padding:10px 12px;background:var(--bg2);border-radius:6px;font-size:12px">
+        <span style="display:flex;gap:6px;align-items:center">
+          <span style="color:var(--text3)">Host</span>
+          <span id="mysql-conn-host" style="font-family:var(--font-mono)">--</span>
+        </span>
+        <span style="display:flex;gap:6px;align-items:center">
+          <span style="color:var(--text3)">Port</span>
+          <span id="mysql-conn-port" style="font-family:var(--font-mono)">--</span>
+        </span>
+        <span style="display:flex;gap:6px;align-items:center">
+          <span style="color:var(--text3)" data-i18n="mysql.conn_user">User</span>
+          <span id="mysql-conn-user" style="font-family:var(--font-mono)">--</span>
+        </span>
+        <span style="display:flex;gap:6px;align-items:center">
+          <span style="color:var(--text3)" data-i18n="mysql.conn_password">Password</span>
+          <span id="mysql-conn-pass" style="font-family:var(--font-mono)">--</span>
+          <button id="mysql-conn-pass-toggle" class="btn btn-secondary btn-icon" style="display:none;width:22px;height:22px;padding:0">
+            <i data-lucide="eye" style="width:13px;height:13px"></i>
+          </button>
+        </span>
+      </div>
+      <!-- Create DB -->
+      <div style="display:flex;align-items:center;gap:8px">
+        <label for="mysql-db-name" style="font-size:12px;color:var(--text3);white-space:nowrap" data-i18n="mysql.db_name">Database name</label>
+        <input type="text" class="input" id="mysql-db-name" style="flex:1" />
+        <button class="btn btn-primary" id="mysql-db-create-btn" data-i18n="mysql.create_db">Create</button>
+      </div>
+      <div id="mysql-db-list"></div>
+    </div>
+  </div>
 
-.mysql-cs-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: rgba(26,122,191,0.12);
-  border: 1px solid rgba(26,122,191,0.25);
-  color: var(--mysql);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  margin-bottom: 20px;
-}
+  <!-- Users -->
+  <div class="panel" id="mysql-users-panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot" style="background:var(--mysql)"></div>
+        <span data-i18n="mysql.users">Users</span>
+      </div>
+    </div>
+    <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
+      <!-- Create user form -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <input type="text" class="input" id="mysql-user-name" style="flex:1;min-width:100px" placeholder="username" />
+        <input type="text" class="input" id="mysql-user-host" style="width:110px" value="localhost" placeholder="host" />
+        <input type="password" class="input" id="mysql-user-pass" style="flex:1;min-width:100px" placeholder="password" />
+        <button class="btn btn-primary" id="mysql-user-create-btn" data-i18n="mysql.create_user">Add user</button>
+      </div>
+      <div id="mysql-users-list"></div>
+    </div>
+  </div>
 
-.mysql-cs-title {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 12px;
-  letter-spacing: -0.5px;
-}
+  <!-- Logs -->
+  <div class="panel">
+    <div class="panel-header accordion-header" id="mysql-log-toggle" style="cursor:pointer">
+      <div class="panel-title">
+        <div class="dot" style="background:var(--text3)"></div>
+        <span data-i18n="nav.logs">Logs</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label class="log-auto-label" id="mysql-log-auto-label" style="display:none;align-items:center;gap:6px;cursor:pointer" title="Auto-refresh">
+          <label class="toggle" style="pointer-events:none">
+            <input type="checkbox" id="mysql-log-auto-check" style="pointer-events:auto" />
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+          <span style="font-size:11px;color:var(--text3);white-space:nowrap" data-i18n="logs.auto">Auto</span>
+        </label>
+        <button class="btn btn-secondary btn-icon" id="mysql-log-refresh-btn" style="display:none"><i data-lucide="refresh-cw"></i></button>
+        <button class="btn btn-danger btn-icon" id="mysql-log-clear-btn" style="display:none"><i data-lucide="trash-2"></i></button>
+        <i data-lucide="chevron-down" id="mysql-log-chevron" style="color:var(--text3);width:16px;height:16px;transition:transform 0.2s"></i>
+      </div>
+    </div>
+    <div id="mysql-log-body" style="display:none">
+      <div style="padding:0">
+        <pre id="mysql-log-content" class="log-viewer"></pre>
+      </div>
+    </div>
+  </div>
 
-.mysql-cs-desc {
-  color: var(--text2);
-  font-size: 13px;
-  line-height: 1.7;
-  max-width: 400px;
-  margin-bottom: 40px;
-}
-
-.mysql-cs-features {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  max-width: 420px;
-  width: 100%;
-}
-
-.mysql-cs-feature {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--text2);
-  font-size: 12px;
-  text-align: left;
-  transition: border-color 0.2s, color 0.2s;
-}
-
-.mysql-cs-feature:hover {
-  border-color: rgba(26,122,191,0.3);
-  color: var(--text);
-}
-
-.mysql-cs-feat-icon {
-  color: var(--mysql);
-  font-size: 14px;
-  flex-shrink: 0;
-}
-</style>
+</div>

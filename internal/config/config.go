@@ -5,6 +5,7 @@ const (
 	NginxGitHubAPI         = "https://api.github.com/repos/nginx/nginx/tags"
 	NginxDownloadURL       = "https://nginx.org/download"
 	PHPReleasesListURL     = "https://windows.php.net/downloads/releases/"
+	PHPReleasesJSONURL    = "https://windows.php.net/downloads/releases/releases.json"
 	PHPDownloadURL         = "https://windows.php.net/downloads/releases"
 	PHPArchivesListURL     = "https://windows.php.net/downloads/releases/archives/"
 	PHPArchivesDownloadURL = "https://windows.php.net/downloads/releases/archives"
@@ -34,11 +35,17 @@ const (
 	NodeReleasesURL     = "https://nodejs.org/dist/index.json"
 	NodeDownloadBaseURL = "https://nodejs.org/dist"
 
+	// MySQL
+	MySQLDownloadBaseURL        = "https://cdn.mysql.com/Downloads"
+	MySQLArchiveDownloadBaseURL = "https://downloads.mysql.com/archives/get/p/23/file"
+	MySQLPort                   = 3306
+
 	// Paths
 	DownloadsFolder = "downloads"
 	NginxFolder     = "nginx"
 	PHPFolder       = "php"
 	RedisFolder     = "redis"
+	MySQLFolder     = "mysql"
 	GitFolder       = "git"
 	NodeFolder      = "nodejs"
 	ConfigFolder    = "config"

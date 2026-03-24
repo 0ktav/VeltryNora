@@ -21,6 +21,8 @@ export function CheckForUpdates():Promise<main.UpdateInfo>;
 
 export function CheckGit():Promise<string>;
 
+export function CheckMySQLVersion():Promise<main.VersionResult>;
+
 export function CheckNginxVersion():Promise<main.VersionResult>;
 
 export function CheckNodeJS():Promise<string>;
@@ -43,11 +45,17 @@ export function CreateIndexFiles(arg1:string,arg2:string,arg3:boolean,arg4:boole
 
 export function CreateLaravelProject(arg1:string,arg2:string):Promise<boolean>;
 
+export function CreateMySQLDatabase(arg1:string):Promise<string>;
+
+export function CreateMySQLUser(arg1:string,arg2:string,arg3:string):Promise<string>;
+
 export function CreateSite(arg1:string,arg2:string,arg3:string,arg4:boolean):Promise<string>;
 
 export function DeleteHostEntries(arg1:Array<string>):Promise<boolean>;
 
 export function DeleteHostEntry(arg1:string):Promise<boolean>;
+
+export function DeleteMySQLVersion(arg1:string):Promise<boolean>;
 
 export function DeleteNginxVersion(arg1:string):Promise<boolean>;
 
@@ -67,7 +75,15 @@ export function DownloadPHP(arg1:string):Promise<string>;
 
 export function DownloadRedis(arg1:string):Promise<boolean>;
 
+export function DownloadUpdate(arg1:string):Promise<string>;
+
+export function DropMySQLDatabase(arg1:string):Promise<string>;
+
+export function DropMySQLUser(arg1:string,arg2:string):Promise<string>;
+
 export function ExecRedisCommand(arg1:string):Promise<string>;
+
+export function ExportMySQLDatabase(arg1:string):Promise<string>;
 
 export function FlushDNS():Promise<boolean>;
 
@@ -84,6 +100,22 @@ export function GetHostsEntries():Promise<Array<hosts.HostEntry>>;
 export function GetInstalledBrowsers():Promise<Array<system.Browser>>;
 
 export function GetLogs(arg1:string,arg2:number):Promise<Array<string>>;
+
+export function GetMySQLActiveVersion():Promise<string>;
+
+export function GetMySQLAvailableVersions():Promise<Array<string>>;
+
+export function GetMySQLConnectionInfo():Promise<main.MySQLConnectionInfo>;
+
+export function GetMySQLDatabases():Promise<Array<string>>;
+
+export function GetMySQLDatabasesInfo():Promise<Array<main.MySQLDatabaseInfo>>;
+
+export function GetMySQLInstalledVersions():Promise<Array<string>>;
+
+export function GetMySQLUserGrants(arg1:string,arg2:string):Promise<Array<string>>;
+
+export function GetMySQLUsers():Promise<Array<main.MySQLUserInfo>>;
 
 export function GetNginxActiveVersion():Promise<string>;
 
@@ -119,7 +151,17 @@ export function GetSites():Promise<Array<sites.Site>>;
 
 export function GetSystemStats():Promise<system.SystemStats>;
 
+export function GrantMySQLDatabase(arg1:string,arg2:string,arg3:string):Promise<string>;
+
+export function ImportMySQLDatabase(arg1:string):Promise<string>;
+
 export function InstallComposer(arg1:boolean):Promise<boolean>;
+
+export function InstallMySQL(arg1:string):Promise<string>;
+
+export function InstallUpdate():Promise<string>;
+
+export function IsMySQLRunning():Promise<boolean>;
 
 export function IsNginxRunning():Promise<boolean>;
 
@@ -141,9 +183,13 @@ export function OpenURL(arg1:string):Promise<void>;
 
 export function ReloadNginx():Promise<boolean>;
 
+export function RestartMySQL():Promise<boolean>;
+
 export function RestartNginx():Promise<string>;
 
 export function RestartRedis():Promise<boolean>;
+
+export function RevokeMySQLDatabase(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function RunArtisan(arg1:string,arg2:string,arg3:string):Promise<string>;
 
@@ -159,11 +205,17 @@ export function SaveSettings(arg1:config.AppSettings):Promise<boolean>;
 
 export function SaveSiteRewrites(arg1:string,arg2:string):Promise<boolean>;
 
+export function SetMySQLActiveVersion(arg1:string):Promise<boolean>;
+
+export function SetMySQLUserPassword(arg1:string,arg2:string,arg3:string):Promise<string>;
+
 export function SetNginxActiveVersion(arg1:string):Promise<boolean>;
 
 export function SetRedisActiveVersion(arg1:string):Promise<boolean>;
 
 export function ShowNotification(arg1:string,arg2:string):Promise<void>;
+
+export function StartMySQL():Promise<boolean>;
 
 export function StartNginx():Promise<string>;
 
@@ -172,6 +224,8 @@ export function StartPHP(arg1:string):Promise<boolean>;
 export function StartRedis():Promise<boolean>;
 
 export function StopAllServices():Promise<void>;
+
+export function StopMySQL():Promise<boolean>;
 
 export function StopNginx():Promise<boolean>;
 

@@ -30,6 +30,10 @@ export function CheckGit() {
   return window['go']['main']['App']['CheckGit']();
 }
 
+export function CheckMySQLVersion() {
+  return window['go']['main']['App']['CheckMySQLVersion']();
+}
+
 export function CheckNginxVersion() {
   return window['go']['main']['App']['CheckNginxVersion']();
 }
@@ -74,6 +78,14 @@ export function CreateLaravelProject(arg1, arg2) {
   return window['go']['main']['App']['CreateLaravelProject'](arg1, arg2);
 }
 
+export function CreateMySQLDatabase(arg1) {
+  return window['go']['main']['App']['CreateMySQLDatabase'](arg1);
+}
+
+export function CreateMySQLUser(arg1, arg2, arg3) {
+  return window['go']['main']['App']['CreateMySQLUser'](arg1, arg2, arg3);
+}
+
 export function CreateSite(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['CreateSite'](arg1, arg2, arg3, arg4);
 }
@@ -84,6 +96,10 @@ export function DeleteHostEntries(arg1) {
 
 export function DeleteHostEntry(arg1) {
   return window['go']['main']['App']['DeleteHostEntry'](arg1);
+}
+
+export function DeleteMySQLVersion(arg1) {
+  return window['go']['main']['App']['DeleteMySQLVersion'](arg1);
 }
 
 export function DeleteNginxVersion(arg1) {
@@ -122,8 +138,24 @@ export function DownloadRedis(arg1) {
   return window['go']['main']['App']['DownloadRedis'](arg1);
 }
 
+export function DownloadUpdate(arg1) {
+  return window['go']['main']['App']['DownloadUpdate'](arg1);
+}
+
+export function DropMySQLDatabase(arg1) {
+  return window['go']['main']['App']['DropMySQLDatabase'](arg1);
+}
+
+export function DropMySQLUser(arg1, arg2) {
+  return window['go']['main']['App']['DropMySQLUser'](arg1, arg2);
+}
+
 export function ExecRedisCommand(arg1) {
   return window['go']['main']['App']['ExecRedisCommand'](arg1);
+}
+
+export function ExportMySQLDatabase(arg1) {
+  return window['go']['main']['App']['ExportMySQLDatabase'](arg1);
 }
 
 export function FlushDNS() {
@@ -156,6 +188,38 @@ export function GetInstalledBrowsers() {
 
 export function GetLogs(arg1, arg2) {
   return window['go']['main']['App']['GetLogs'](arg1, arg2);
+}
+
+export function GetMySQLActiveVersion() {
+  return window['go']['main']['App']['GetMySQLActiveVersion']();
+}
+
+export function GetMySQLAvailableVersions() {
+  return window['go']['main']['App']['GetMySQLAvailableVersions']();
+}
+
+export function GetMySQLConnectionInfo() {
+  return window['go']['main']['App']['GetMySQLConnectionInfo']();
+}
+
+export function GetMySQLDatabases() {
+  return window['go']['main']['App']['GetMySQLDatabases']();
+}
+
+export function GetMySQLDatabasesInfo() {
+  return window['go']['main']['App']['GetMySQLDatabasesInfo']();
+}
+
+export function GetMySQLInstalledVersions() {
+  return window['go']['main']['App']['GetMySQLInstalledVersions']();
+}
+
+export function GetMySQLUserGrants(arg1, arg2) {
+  return window['go']['main']['App']['GetMySQLUserGrants'](arg1, arg2);
+}
+
+export function GetMySQLUsers() {
+  return window['go']['main']['App']['GetMySQLUsers']();
 }
 
 export function GetNginxActiveVersion() {
@@ -226,8 +290,28 @@ export function GetSystemStats() {
   return window['go']['main']['App']['GetSystemStats']();
 }
 
+export function GrantMySQLDatabase(arg1, arg2, arg3) {
+  return window['go']['main']['App']['GrantMySQLDatabase'](arg1, arg2, arg3);
+}
+
+export function ImportMySQLDatabase(arg1) {
+  return window['go']['main']['App']['ImportMySQLDatabase'](arg1);
+}
+
 export function InstallComposer(arg1) {
   return window['go']['main']['App']['InstallComposer'](arg1);
+}
+
+export function InstallMySQL(arg1) {
+  return window['go']['main']['App']['InstallMySQL'](arg1);
+}
+
+export function InstallUpdate() {
+  return window['go']['main']['App']['InstallUpdate']();
+}
+
+export function IsMySQLRunning() {
+  return window['go']['main']['App']['IsMySQLRunning']();
 }
 
 export function IsNginxRunning() {
@@ -270,12 +354,20 @@ export function ReloadNginx() {
   return window['go']['main']['App']['ReloadNginx']();
 }
 
+export function RestartMySQL() {
+  return window['go']['main']['App']['RestartMySQL']();
+}
+
 export function RestartNginx() {
   return window['go']['main']['App']['RestartNginx']();
 }
 
 export function RestartRedis() {
   return window['go']['main']['App']['RestartRedis']();
+}
+
+export function RevokeMySQLDatabase(arg1, arg2, arg3) {
+  return window['go']['main']['App']['RevokeMySQLDatabase'](arg1, arg2, arg3);
 }
 
 export function RunArtisan(arg1, arg2, arg3) {
@@ -306,6 +398,14 @@ export function SaveSiteRewrites(arg1, arg2) {
   return window['go']['main']['App']['SaveSiteRewrites'](arg1, arg2);
 }
 
+export function SetMySQLActiveVersion(arg1) {
+  return window['go']['main']['App']['SetMySQLActiveVersion'](arg1);
+}
+
+export function SetMySQLUserPassword(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SetMySQLUserPassword'](arg1, arg2, arg3);
+}
+
 export function SetNginxActiveVersion(arg1) {
   return window['go']['main']['App']['SetNginxActiveVersion'](arg1);
 }
@@ -316,6 +416,10 @@ export function SetRedisActiveVersion(arg1) {
 
 export function ShowNotification(arg1, arg2) {
   return window['go']['main']['App']['ShowNotification'](arg1, arg2);
+}
+
+export function StartMySQL() {
+  return window['go']['main']['App']['StartMySQL']();
 }
 
 export function StartNginx() {
@@ -332,6 +436,10 @@ export function StartRedis() {
 
 export function StopAllServices() {
   return window['go']['main']['App']['StopAllServices']();
+}
+
+export function StopMySQL() {
+  return window['go']['main']['App']['StopMySQL']();
 }
 
 export function StopNginx() {

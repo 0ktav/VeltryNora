@@ -12,6 +12,14 @@
     <div class="panel-body">
       <div id="sites-search-wrap" style="display:none;margin-bottom:10px">
         <input type="text" id="sites-search" class="input" style="width:100%;font-size:12px" data-i18n="sites.search_placeholder" />
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center">
+          <div class="lang-selector" id="sites-filter-status">
+            <button class="lang-btn active" data-status="all" data-i18n="common.all">All</button>
+            <button class="lang-btn" data-status="active" data-i18n="sites.filter_active">Active</button>
+            <button class="lang-btn" data-status="inactive" data-i18n="sites.filter_inactive">Inactive</button>
+          </div>
+          <div class="lang-selector" id="sites-filter-php"></div>
+        </div>
       </div>
       <div id="sites-list">
         <div style="color: var(--text3); font-size: 11px" data-i18n="common.loading">Loading...</div>

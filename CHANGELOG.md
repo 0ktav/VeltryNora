@@ -1,3 +1,18 @@
+## v1.2.0 — 2026-03-24
+
+### Added
+- **Auto-update** — app checks for a new version on startup, shows a sidebar badge, and lets you download and install the update directly from the About page; Windows toast notification when a new version is available
+- **MySQL** — install, start/stop/restart, view logs; manage databases (create, drop, collation info); manage users (create, drop, change password, set permissions); import/export SQL dumps
+- **MySQL import confirmation** — confirmation modal before importing a SQL file, warning that existing data may be overwritten
+- **Sites: filter pills** — filter the sites list by status (active/inactive) and PHP version
+- **Installer: download progress** — percent and total MB shown during component downloads
+- **UI: persistent download progress widget** — download status pinned in the sidebar while a download is in progress
+- **UI: spinner feedback** — delete and activate buttons show a spinner while the operation is running
+- **Single instance enforcement** — launching a second instance brings the existing window to foreground instead of opening a duplicate
+
+
+---
+
 ## v1.1.0 — 2026-03-20
 
 ### Added

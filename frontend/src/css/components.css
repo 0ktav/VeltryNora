@@ -1071,3 +1071,83 @@
   background: var(--accent);
   color: var(--bg);
 }
+
+/* UPDATE BADGE */
+.update-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(224, 168, 34, 0.1);
+  border: 1px solid rgba(224, 168, 34, 0.25);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--warn);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.update-badge:hover {
+  background: rgba(224, 168, 34, 0.18);
+  border-color: rgba(224, 168, 34, 0.45);
+}
+
+/* SIDEBAR DOWNLOAD WIDGET */
+#sidebar-downloads {
+  margin-top: auto;
+  padding: 12px 12px 16px;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.dl-entry {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.dl-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.dl-icon {
+  color: var(--accent);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.dl-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dl-bar-wrap {
+  margin-top: 0;
+}
+
+.dl-info {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 11px;
+}
+
+.dl-pct {
+  color: var(--text2);
+}
+
+.dl-size {
+  color: var(--text3);
+}

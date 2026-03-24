@@ -121,6 +121,7 @@ RequestExecutionLevel "${REQUEST_EXECUTION_LEVEL}"
     WriteRegStr HKLM "${UNINST_KEY}" "DisplayIcon" "$INSTDIR\${PRODUCT_EXECUTABLE}"
     WriteRegStr HKLM "${UNINST_KEY}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
     WriteRegStr HKLM "${UNINST_KEY}" "QuietUninstallString" "$\"$INSTDIR\uninstall.exe$\" /S"
+    WriteRegStr HKLM "${UNINST_KEY}" "InstallLocation" "$INSTDIR"
 
     ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
     IntFmt $0 "0x%08X" $0

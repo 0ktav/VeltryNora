@@ -1,5 +1,6 @@
 import { EventsOn } from "../../wailsjs/runtime";
 import { t } from "./i18n.js";
+import { startDownload, finishDownload, errorDownload } from "./downloader.js";
 
 /**
  * Opens a reusable install modal with progress bar.
@@ -8,6 +9,7 @@ import { t } from "./i18n.js";
  */
 export function openInstallModal({
   title,
+  serviceName = "",
   accentColor,
   loadVersionsFn,
   installFn,
@@ -41,12 +43,6 @@ export function openInstallModal({
             : ""
         }
       </div>
-      <div id="imodal-progress" style="display:none;margin-top:12px">
-        <div class="progress-wrap">
-          <div class="progress-bar" id="imodal-bar" style="width:0%"></div>
-        </div>
-        <div class="progress-label" id="imodal-label">0%</div>
-      </div>
     </div>
     <div class="modal-footer" style="margin-top:20px">
       <button class="btn btn-secondary" id="imodal-cancel">${t("common.cancel")}</button>
@@ -58,9 +54,6 @@ export function openInstallModal({
   document.body.appendChild(overlay);
 
   const select = modal.querySelector("#imodal-select");
-  const progress = modal.querySelector("#imodal-progress");
-  const bar = modal.querySelector("#imodal-bar");
-  const label = modal.querySelector("#imodal-label");
   const installBtn = modal.querySelector("#imodal-btn");
   const cancelBtn = modal.querySelector("#imodal-cancel");
   const archived = withArchivedToggle
@@ -87,39 +80,23 @@ export function openInstallModal({
     const version = select.value;
     if (!version || !select.options[select.selectedIndex]?.value) return;
 
-    progress.style.display = "block";
-    installBtn.disabled = true;
-    installBtn.textContent = t("common.installing");
-    cancelBtn.disabled = true;
-    bar.style.width = "0%";
-    label.style.color = "";
-    label.textContent = "0%";
+    // Close modal immediately — download continues in the sidebar widget
+    close();
 
-    EventsOn(eventName, (percent) => {
-      bar.style.width = percent + "%";
-      label.textContent = percent + "%";
-    });
+    startDownload(eventName, serviceName ? `${serviceName} ${version}` : version);
 
     const result = await installFn(version);
     const ok = typeof result === "string" ? result === "" : result;
     const errMsg = typeof result === "string" && result !== "" ? result : null;
 
     if (!ok) {
-      label.textContent = errMsg || t("common.install_error");
-      label.style.color = "var(--danger)";
-      installBtn.disabled = false;
-      installBtn.textContent = t("common.install");
-      cancelBtn.disabled = false;
+      errorDownload(eventName, errMsg || t("common.install_error"));
       return;
     }
 
-    label.textContent = t("common.install_success");
-    label.style.color = "var(--good)";
+    finishDownload(eventName);
 
     if (onInstalled) await onInstalled(version);
-
-    // Close modal after a short delay so the user sees the success message
-    setTimeout(close, 1200);
   }
 
   if (archived) archived.addEventListener("change", loadVersions);
@@ -147,9 +124,11 @@ export async function runInstall({
   progressId,
   barId,
   labelId,
+  sizeId,
   btnId,
   eventName,
   downloadFn,
+  serviceName = "",
 }) {
   const select = document.getElementById(selectId);
   const version = select?.value;
@@ -158,16 +137,35 @@ export async function runInstall({
   const progress = document.getElementById(progressId);
   const bar = document.getElementById(barId);
   const label = document.getElementById(labelId);
+  const sizeLabel = sizeId ? document.getElementById(sizeId) : null;
   const btn = document.getElementById(btnId);
   if (!progress || !bar || !label || !btn) return null;
 
   progress.style.display = "block";
+  bar.style.width = "0%";
+  bar.style.opacity = "";
+  label.textContent = "0%";
+  if (sizeLabel) sizeLabel.textContent = "";
   btn.disabled = true;
   btn.textContent = t("common.installing");
 
-  EventsOn(eventName, (percent) => {
-    bar.style.width = percent + "%";
-    label.textContent = percent + "%";
+  startDownload(eventName, serviceName ? `${serviceName} ${version}` : version);
+
+  EventsOn(eventName, ({ percent, totalMB }) => {
+    if (percent >= 0) {
+      bar.style.width = percent + "%";
+      bar.style.opacity = "";
+      label.textContent = percent + "%";
+      if (sizeLabel && totalMB > 0) {
+        const doneMB = (percent / 100 * totalMB).toFixed(1);
+        sizeLabel.textContent = `${doneMB} / ${totalMB.toFixed(1)} MB`;
+      }
+    } else {
+      bar.style.width = "100%";
+      bar.style.opacity = "0.4";
+      label.textContent = totalMB > 0 ? `${totalMB.toFixed(1)} MB` : "…";
+      if (sizeLabel) sizeLabel.textContent = "";
+    }
   });
 
   const result = await downloadFn(version);
@@ -177,6 +175,7 @@ export async function runInstall({
   const errMsg = typeof result === "string" && result !== "" ? result : null;
 
   if (!ok) {
+    errorDownload(eventName, errMsg || t("common.install_error"));
     label.textContent = errMsg || t("common.install_error");
     label.title = errMsg || "";
     label.style.color = "var(--danger)";
@@ -184,6 +183,8 @@ export async function runInstall({
     btn.textContent = t("common.install");
     return null;
   }
+
+  finishDownload(eventName);
 
   label.style.color = "";
   label.title = "";

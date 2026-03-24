@@ -8,6 +8,7 @@ import {
   GetBasePath,
 } from "../../wailsjs/go/main/App";
 import { EventsOn, EventsOff } from "../../wailsjs/runtime/runtime.js";
+import { startDownload, finishDownload } from "./downloader.js";
 import { createIcons, icons } from "lucide";
 import { t } from "./i18n.js";
 import { escapeHtml } from "./utils.js";
@@ -234,11 +235,19 @@ async function downloadTool(tool) {
     </div>
   `;
 
-  const onProgress = (percent) => {
+  const onProgress = ({ percent, totalMB }) => {
     const bar = document.getElementById(`${tool}-progress-bar`);
     const pct = document.getElementById(`${tool}-progress-pct`);
-    if (bar) bar.style.width = percent + "%";
-    if (pct) pct.textContent = percent + "%";
+    if (percent >= 0) {
+      if (bar) bar.style.width = percent + "%";
+      if (pct) {
+        const sizeStr = totalMB > 0 ? ` — ${totalMB.toFixed(1)} MB` : "";
+        pct.textContent = percent + "%" + sizeStr;
+      }
+    } else {
+      if (bar) { bar.style.width = "100%"; bar.style.opacity = "0.5"; }
+      if (pct) pct.textContent = totalMB > 0 ? `${totalMB.toFixed(1)} MB` : "…";
+    }
   };
 
   let errorMsg = "";
@@ -246,6 +255,7 @@ async function downloadTool(tool) {
     errorMsg = msg;
   };
 
+  startDownload(event, toolLabel);
   EventsOn(event, onProgress);
   EventsOn(`${tool}:download-error`, onError);
 
@@ -256,6 +266,7 @@ async function downloadTool(tool) {
 
   EventsOff(event);
   EventsOff(`${tool}:download-error`);
+  finishDownload(event);
 
   if (ok) {
     if (tool === "git") await renderGitCard();

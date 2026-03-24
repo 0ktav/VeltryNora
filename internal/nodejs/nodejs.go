@@ -74,7 +74,7 @@ func getLatestLTS() (string, error) {
 
 // Download fetches the latest Node.js LTS and extracts it to {basePath}/nodejs/.
 // If addToSystemPath is true, the nodejs directory is appended to the machine PATH.
-func Download(addToSystemPath bool, onProgress func(int)) error {
+func Download(addToSystemPath bool, onProgress func(percent int, totalMB float64)) error {
 	version, err := getLatestLTS()
 	if err != nil {
 		return fmt.Errorf("failed to fetch latest Node.js LTS: %w", err)
@@ -86,7 +86,7 @@ func Download(addToSystemPath bool, onProgress func(int)) error {
 	os.RemoveAll(destDir)
 
 	zipPath := filepath.Join(system.GetBasePath(), config.DownloadsFolder, "nodejs.zip")
-	if err := utils.Download(url, zipPath, onProgress); err != nil {
+	if err := utils.Download(url, zipPath, 0, onProgress); err != nil {
 		return err
 	}
 

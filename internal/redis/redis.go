@@ -94,7 +94,7 @@ func IsRunning() bool {
 	return system.IsProcessRunning("redis-server.exe")
 }
 
-func Download(version string, onProgress func(int)) error {
+func Download(version string, onProgress func(percent int, totalMB float64)) error {
 	url := fmt.Sprintf("%s/v%s/Redis-x64-%s.zip", config.RedisDownloadURL, version, version)
 	basePath := system.GetBasePath()
 	zipPath := filepath.Join(basePath, config.DownloadsFolder, "redis-"+version+".zip")
@@ -102,7 +102,7 @@ func Download(version string, onProgress func(int)) error {
 
 	os.MkdirAll(filepath.Join(basePath, config.RedisFolder), 0755)
 
-	err := utils.Download(url, zipPath, onProgress)
+	err := utils.Download(url, zipPath, 0, onProgress)
 	if err != nil {
 		return err
 	}

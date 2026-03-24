@@ -19,6 +19,10 @@ var assets embed.FS
 var appIcon []byte
 
 func main() {
+	if _, ok := acquireSingleInstanceMutex(); !ok {
+		return
+	}
+
 	app := NewApp()
 
 	err := wails.Run(&options.App{

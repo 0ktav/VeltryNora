@@ -11,6 +11,7 @@ type VersionCache struct {
 	Nginx     string    `json:"nginx"`
 	PHP       string    `json:"php"`
 	Redis     string    `json:"redis"`
+	MySQL     string    `json:"mysql"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 

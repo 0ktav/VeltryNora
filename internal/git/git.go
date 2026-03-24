@@ -107,7 +107,7 @@ func getLatestRelease() (downloadURL, version string, err error) {
 
 // Download fetches the latest MinGit release and extracts it to {basePath}/git/.
 // If addToSystemPath is true, the git/cmd directory is appended to the machine PATH.
-func Download(addToSystemPath bool, onProgress func(int)) error {
+func Download(addToSystemPath bool, onProgress func(percent int, totalMB float64)) error {
 	downloadURL, _, err := getLatestRelease()
 	if err != nil {
 		return fmt.Errorf("failed to fetch latest git release: %w", err)
@@ -117,7 +117,7 @@ func Download(addToSystemPath bool, onProgress func(int)) error {
 	os.RemoveAll(destDir)
 
 	zipPath := filepath.Join(system.GetBasePath(), config.DownloadsFolder, "git.zip")
-	if err := utils.Download(downloadURL, zipPath, onProgress); err != nil {
+	if err := utils.Download(downloadURL, zipPath, 0, onProgress); err != nil {
 		return err
 	}
 

@@ -175,6 +175,75 @@ export function confirmInstall(title, pathToAdd) {
   });
 }
 
+// promptPassword — shows a modal with a password input field.
+// Returns the entered string, or null if cancelled.
+export function promptPassword(title, label) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+
+    const modal = document.createElement("div");
+    modal.className = "modal";
+
+    const titleEl = document.createElement("div");
+    titleEl.className = "modal-title";
+    titleEl.textContent = "✎ " + title;
+
+    const bodyEl = document.createElement("div");
+    bodyEl.className = "modal-body";
+
+    const labelEl = document.createElement("label");
+    labelEl.style.cssText = "font-size:12px;color:var(--text3);display:block;margin-bottom:6px";
+    labelEl.textContent = label;
+
+    const input = document.createElement("input");
+    input.type = "password";
+    input.className = "input";
+    input.style.cssText = "width:100%";
+
+    bodyEl.append(labelEl, input);
+
+    const footer = document.createElement("div");
+    footer.className = "modal-footer";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.className = "btn btn-secondary";
+    cancelBtn.textContent = t("common.cancel");
+
+    const okBtn = document.createElement("button");
+    okBtn.className = "btn btn-primary";
+    okBtn.textContent = "OK";
+
+    footer.append(cancelBtn, okBtn);
+    modal.append(titleEl, bodyEl, footer);
+    overlay.append(modal);
+    document.body.appendChild(overlay);
+
+    setTimeout(() => input.focus(), 50);
+
+    const submit = () => {
+      const val = input.value;
+      overlay.remove();
+      resolve(val);
+    };
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") submit();
+      if (e.key === "Escape") {
+        overlay.remove();
+        resolve(null);
+      }
+    });
+
+    cancelBtn.addEventListener("click", () => {
+      overlay.remove();
+      resolve(null);
+    });
+
+    okBtn.addEventListener("click", submit);
+  });
+}
+
 export function alert(title, message, type = "info") {
   return new Promise((resolve) => {
     const colors = {

@@ -18,7 +18,7 @@ import {
   OpenFolder,
 } from "../../wailsjs/go/main/App";
 import { confirm } from "./modal.js";
-import { addListener, escapeHtml } from "./utils.js";
+import { addListener, escapeHtml, pollUntilStopped, pollUntilStarted } from "./utils.js";
 import { runInstall, openInstallModal } from "./installer.js";
 import { t } from "./i18n.js";
 import { createIcons, icons } from "lucide";
@@ -56,6 +56,7 @@ async function loadPHPPage() {
   addListener("php-add-btn", () =>
     openInstallModal({
       title: `⬡ ${t("common.install_new")}`,
+      serviceName: "PHP",
       accentColor: "var(--php)",
       withArchivedToggle: true,
       loadVersionsFn: async (archived) => {
@@ -176,11 +177,13 @@ async function onInstall() {
     progressId: "php-progress-first",
     barId: "php-progress-bar-first",
     labelId: "php-progress-label-first",
+    sizeId: "php-progress-size-first",
     btnId: "php-install-btn",
     eventName: "php:download-progress",
     downloadFn: DownloadPHP,
+    serviceName: "PHP",
   });
-  if (result) setTimeout(() => loadPHPPage(), 1000);
+  if (result) await loadPHPPage();
 }
 
 async function startPHP(btn, version) {
@@ -190,7 +193,7 @@ async function startPHP(btn, version) {
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner"></span>`;
     await StartPHP(version);
-    await new Promise((r) => setTimeout(r, 800));
+    await pollUntilStarted(() => IsPHPRunning(version));
     const installed = await GetPHPInstalledVersions();
     await renderInstalledVersions(installed);
   } finally {
@@ -205,7 +208,7 @@ async function stopPHP(btn, version) {
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner"></span>`;
     await StopPHP(version);
-    await new Promise((r) => setTimeout(r, 800));
+    await pollUntilStopped(() => IsPHPRunning(version));
     const installed = await GetPHPInstalledVersions();
     await renderInstalledVersions(installed);
   } finally {
@@ -213,9 +216,11 @@ async function stopPHP(btn, version) {
   }
 }
 
-async function deletePHP(version) {
+async function deletePHP(version, btn) {
   if (isDeletingPHP) return;
   isDeletingPHP = true;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span>`;
 
   try {
     const ok = await confirm(
@@ -231,6 +236,11 @@ async function deletePHP(version) {
     }
   } finally {
     isDeletingPHP = false;
+    if (document.contains(btn)) {
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="trash-2"></i>`;
+      createIcons({ icons });
+    }
   }
 }
 
@@ -323,7 +333,7 @@ async function openConfigPanel(version) {
       const ok = await SavePHPConfig(version, newCfg);
       if (ok) {
         await StopPHP(version);
-        await new Promise((r) => setTimeout(r, 500));
+        await pollUntilStopped(() => IsPHPRunning(version));
         await StartPHP(version);
         panel.style.display = "none";
         const installed = await GetPHPInstalledVersions();
@@ -489,7 +499,7 @@ export function init() {
       else if (action === "config") await openConfigPanel(version);
       else if (action === "ini") await openIniPanel(version);
       else if (action === "log") await openLogPanel(version);
-      else if (action === "delete") await deletePHP(version);
+      else if (action === "delete") await deletePHP(version, btn);
     });
   }
 

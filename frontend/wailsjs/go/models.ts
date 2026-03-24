@@ -82,11 +82,64 @@ export namespace main {
 	        this.repository = source["repository"];
 	    }
 	}
+	export class MySQLConnectionInfo {
+	    host: string;
+	    port: number;
+	    user: string;
+	    hasPassword: boolean;
+	    password: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MySQLConnectionInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.host = source["host"];
+	        this.port = source["port"];
+	        this.user = source["user"];
+	        this.hasPassword = source["hasPassword"];
+	        this.password = source["password"];
+	    }
+	}
+	export class MySQLDatabaseInfo {
+	    name: string;
+	    charset: string;
+	    collation: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MySQLDatabaseInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.charset = source["charset"];
+	        this.collation = source["collation"];
+	    }
+	}
+	export class MySQLUserInfo {
+	    user: string;
+	    host: string;
+	    hasPassword: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new MySQLUserInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.user = source["user"];
+	        this.host = source["host"];
+	        this.hasPassword = source["hasPassword"];
+	    }
+	}
 	export class UpdateInfo {
 	    currentVersion: string;
 	    latestVersion: string;
 	    isUpToDate: boolean;
 	    releaseURL: string;
+	    downloadURL: string;
 	    error: string;
 	
 	    static createFrom(source: any = {}) {
@@ -99,6 +152,7 @@ export namespace main {
 	        this.latestVersion = source["latestVersion"];
 	        this.isUpToDate = source["isUpToDate"];
 	        this.releaseURL = source["releaseURL"];
+	        this.downloadURL = source["downloadURL"];
 	        this.error = source["error"];
 	    }
 	}

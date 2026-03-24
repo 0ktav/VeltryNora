@@ -35,6 +35,7 @@ type UpdateInfo struct {
 	LatestVersion  string `json:"latestVersion"`
 	IsUpToDate     bool   `json:"isUpToDate"`
 	ReleaseURL     string `json:"releaseURL"`
+	DownloadURL    string `json:"downloadURL"`
 	Error          string `json:"error"`
 }
 
@@ -82,17 +83,30 @@ func (a *App) CheckForUpdates() UpdateInfo {
 	var release struct {
 		TagName string `json:"tag_name"`
 		HTMLURL string `json:"html_url"`
+		Assets  []struct {
+			Name               string `json:"name"`
+			BrowserDownloadURL string `json:"browser_download_url"`
+		} `json:"assets"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
 		return UpdateInfo{CurrentVersion: current, IsUpToDate: true, Error: err.Error()}
+	}
+
+	var downloadURL string
+	for _, asset := range release.Assets {
+		if strings.HasSuffix(asset.Name, ".exe") {
+			downloadURL = asset.BrowserDownloadURL
+			break
+		}
 	}
 
 	latest := strings.TrimPrefix(release.TagName, "v")
 	return UpdateInfo{
 		CurrentVersion: current,
 		LatestVersion:  latest,
-		IsUpToDate:     latest == "" || latest == current,
+		IsUpToDate:     latest == "" || compareSemver(current, latest) >= 0,
 		ReleaseURL:     release.HTMLURL,
+		DownloadURL:    downloadURL,
 	}
 }
 

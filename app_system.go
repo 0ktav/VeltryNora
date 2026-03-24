@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"nginxpanel/internal/config"
 	"nginxpanel/internal/hosts"
+	"nginxpanel/internal/mysql"
 	"nginxpanel/internal/nginx"
 	"nginxpanel/internal/php"
 	"nginxpanel/internal/redis"
@@ -112,6 +113,9 @@ func (a *App) StopAllServices() {
 		php.Stop(v)
 	}
 	redis.Stop()
+	if active := mysql.GetActiveVersion(); active != "" {
+		mysql.Stop(active)
+	}
 }
 
 func (a *App) GetLogs(logType string, maxLines int) []string {
@@ -127,6 +131,8 @@ func (a *App) GetLogs(logType string, maxLines int) []string {
 			logPath = filepath.Join(basePath, config.PHPFolder, logType[4:], "php.log")
 		} else if len(logType) > 6 && logType[:6] == "redis:" {
 			logPath = filepath.Join(basePath, config.RedisFolder, logType[6:], "redis.log")
+		} else if logType == "mysql" {
+			logPath = mysql.LogPath(mysql.GetActiveVersion())
 		} else if len(logType) > 12 && logType[:12] == "site-access:" {
 			logPath = filepath.Join(basePath, config.LogsFolder, config.SiteLogsFolder, logType[12:]+"-access.log")
 		} else if len(logType) > 11 && logType[:11] == "site-error:" {
@@ -151,6 +157,8 @@ func (a *App) ClearLog(logType string) bool {
 			logPath = filepath.Join(basePath, config.PHPFolder, logType[4:], "php.log")
 		} else if len(logType) > 6 && logType[:6] == "redis:" {
 			logPath = filepath.Join(basePath, config.RedisFolder, logType[6:], "redis.log")
+		} else if logType == "mysql" {
+			logPath = mysql.LogPath(mysql.GetActiveVersion())
 		} else if len(logType) > 12 && logType[:12] == "site-access:" {
 			logPath = filepath.Join(basePath, config.LogsFolder, config.SiteLogsFolder, logType[12:]+"-access.log")
 		} else if len(logType) > 11 && logType[:11] == "site-error:" {

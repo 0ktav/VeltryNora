@@ -14,7 +14,7 @@ import {
   ClearLog,
 } from "../../wailsjs/go/main/App";
 import { alert, confirm } from "./modal.js";
-import { addListener } from "./utils.js";
+import { addListener, pollUntilStopped } from "./utils.js";
 import { runInstall, openInstallModal } from "./installer.js";
 import { t } from "./i18n.js";
 import { createIcons, icons } from "lucide";
@@ -43,6 +43,7 @@ async function loadRedisPage() {
   addListener("redis-add-btn", () =>
     openInstallModal({
       title: `◉ ${t("common.install_new")}`,
+      serviceName: "Redis",
       accentColor: "var(--redis)",
       loadVersionsFn: async () => {
         const [available, installed] = await Promise.all([
@@ -76,7 +77,7 @@ async function loadRedisPage() {
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner"></span> ${t("common.stopping")}`;
     await StopRedis();
-    await new Promise((r) => setTimeout(r, 500));
+    await pollUntilStopped(IsRedisRunning);
     await updateRedisStatus();
   });
 
@@ -190,19 +191,23 @@ async function onInstall() {
     progressId: "redis-progress-first",
     barId: "redis-progress-bar-first",
     labelId: "redis-progress-label-first",
+    sizeId: "redis-progress-size-first",
     btnId: "redis-install-btn",
     eventName: "redis:download-progress",
     downloadFn: DownloadRedis,
+    serviceName: "Redis",
   });
   if (result) {
     await SetRedisActiveVersion(result.version);
-    setTimeout(() => loadRedisPage(), 1000);
+    await loadRedisPage();
   }
 }
 
-async function activateRedisVersion(version) {
+async function activateRedisVersion(version, btn) {
   if (isActivating) return;
   isActivating = true;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span>`;
 
   try {
     const running = await IsRedisRunning();
@@ -213,7 +218,7 @@ async function activateRedisVersion(version) {
       );
       if (!ok) return;
       await StopRedis();
-      await new Promise((r) => setTimeout(r, 500));
+      await pollUntilStopped(IsRedisRunning);
     }
 
     await SetRedisActiveVersion(version);
@@ -222,12 +227,18 @@ async function activateRedisVersion(version) {
     await updateRedisStatus();
   } finally {
     isActivating = false;
+    if (document.contains(btn)) {
+      btn.disabled = false;
+      btn.textContent = t("common.activate");
+    }
   }
 }
 
-async function deleteRedisVersion(version) {
+async function deleteRedisVersion(version, btn) {
   if (isDeleting) return;
   isDeleting = true;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span>`;
 
   try {
     const ok = await confirm(
@@ -244,6 +255,10 @@ async function deleteRedisVersion(version) {
     }
   } finally {
     isDeleting = false;
+    if (document.contains(btn)) {
+      btn.disabled = false;
+      btn.textContent = t("common.delete");
+    }
   }
 }
 
@@ -303,8 +318,8 @@ export function init() {
       const btn = e.target.closest("button[data-action]");
       if (!btn) return;
       const { action, version } = btn.dataset;
-      if (action === "activate") await activateRedisVersion(version);
-      else if (action === "delete") await deleteRedisVersion(version);
+      if (action === "activate") await activateRedisVersion(version, btn);
+      else if (action === "delete") await deleteRedisVersion(version, btn);
     });
   }
 

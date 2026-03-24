@@ -120,13 +120,13 @@ func IsRunning() bool {
 	return system.IsProcessRunning("nginx.exe")
 }
 
-func Download(version string, onProgress func(int)) error {
+func Download(version string, onProgress func(percent int, totalMB float64)) error {
 	url := fmt.Sprintf("%s/nginx-%s.zip", config.NginxDownloadURL, version)
 	basePath := system.GetBasePath()
 	zipPath := filepath.Join(basePath, config.DownloadsFolder, "nginx-"+version+".zip")
 	destDir := filepath.Join(basePath, config.NginxFolder, version)
 
-	err := utils.Download(url, zipPath, onProgress)
+	err := utils.Download(url, zipPath, 0, onProgress)
 	if err != nil {
 		return err
 	}

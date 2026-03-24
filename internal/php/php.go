@@ -1,6 +1,7 @@
 package php
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"nginxpanel/internal/utils"
 	"nginxpanel/internal/winexec"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -162,7 +164,35 @@ func latestPerMinor(versions []string) []string {
 	return result
 }
 
-func resolveDownloadURL(version string) (string, error) {
+// phpFileSizeFromJSON fetches releases.json and returns the exact file size for the given filename.
+func phpFileSizeFromJSON(filename string) int64 {
+	resp, err := http.Get(config.PHPReleasesJSONURL)
+	if err != nil {
+		return -1
+	}
+	defer resp.Body.Close()
+
+	// releases.json structure: {"8.4": {"version": "8.4.5", "windows": [{"path": "file.zip", "size": 12345678}]}}
+	var releases map[string]struct {
+		Windows []struct {
+			Path string `json:"path"`
+			Size int64  `json:"size"`
+		} `json:"windows"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&releases); err != nil {
+		return -1
+	}
+	for _, rel := range releases {
+		for _, f := range rel.Windows {
+			if f.Path == filename && f.Size > 0 {
+				return f.Size
+			}
+		}
+	}
+	return -1
+}
+
+func resolveDownloadURL(version string) (string, int64, error) {
 	parts := strings.Split(version, ".")
 	major, minor := 0, 0
 	if len(parts) >= 2 {
@@ -180,16 +210,55 @@ func resolveDownloadURL(version string) (string, error) {
 
 	for _, url := range candidates {
 		resp, err := http.Head(url)
-		if err == nil && resp.StatusCode == 200 {
-			return url, nil
+		if err != nil || resp.StatusCode != 200 {
+			continue
 		}
+		size := resp.ContentLength
+		if size <= 0 {
+			size = rangeFileSize(url)
+		}
+		if size <= 0 {
+			size = phpFileSizeFromJSON(path.Base(url))
+		}
+		return url, size, nil
 	}
 
-	return "", fmt.Errorf("no download found for PHP %s", version)
+	return "", 0, fmt.Errorf("no download found for PHP %s", version)
 }
 
-func Download(version string, onProgress func(int)) error {
-	downloadURL, err := resolveDownloadURL(version)
+// rangeFileSize tries to get the total file size via a Range request.
+// Handles both 206 (Content-Range header) and 200 (Content-Length header) responses.
+func rangeFileSize(url string) int64 {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return -1
+	}
+	req.Header.Set("Range", "bytes=0-0")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return -1
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case 206:
+		io.Copy(io.Discard, resp.Body) // only 1 byte
+		cr := resp.Header.Get("Content-Range") // "bytes 0-0/15728640"
+		if i := strings.LastIndex(cr, "/"); i >= 0 {
+			if sz, err := strconv.ParseInt(strings.TrimSpace(cr[i+1:]), 10, 64); err == nil && sz > 0 {
+				return sz
+			}
+		}
+	case 200:
+		if resp.ContentLength > 0 {
+			return resp.ContentLength
+		}
+	}
+	return -1
+}
+
+func Download(version string, onProgress func(percent int, totalMB float64)) error {
+	downloadURL, headSize, err := resolveDownloadURL(version)
 	if err != nil {
 		return err
 	}
@@ -199,7 +268,7 @@ func Download(version string, onProgress func(int)) error {
 
 	os.MkdirAll(filepath.Join(basePath, config.PHPFolder), 0755)
 
-	err = utils.Download(downloadURL, zipPath, onProgress)
+	err = utils.Download(downloadURL, zipPath, headSize, onProgress)
 	if err != nil {
 		return err
 	}

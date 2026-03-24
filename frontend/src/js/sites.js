@@ -36,6 +36,8 @@ let isToggling = false;
 let currentSites = [];
 let currentSiteLogType = {};
 let searchQuery = "";
+let filterStatus = "all";
+let filterPHP = "all";
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 
@@ -71,6 +73,42 @@ async function loadSitesPage() {
       renderFilteredSites();
     });
   }
+
+  document.getElementById("sites-filter-status")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".lang-btn[data-status]");
+    if (!btn) return;
+    filterStatus = btn.dataset.status;
+    document.querySelectorAll("#sites-filter-status .lang-btn").forEach((b) =>
+      b.classList.toggle("active", b === btn)
+    );
+    renderFilteredSites();
+  });
+
+  document.getElementById("sites-filter-php")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".lang-btn[data-php]");
+    if (!btn) return;
+    filterPHP = btn.dataset.php;
+    document.querySelectorAll("#sites-filter-php .lang-btn").forEach((b) =>
+      b.classList.toggle("active", b === btn)
+    );
+    renderFilteredSites();
+  });
+
+  await loadPHPFilter();
+}
+
+async function loadPHPFilter() {
+  const container = document.getElementById("sites-filter-php");
+  if (!container) return;
+
+  const installed = await GetPHPInstalledVersions();
+  const versions = [...new Set(installed.map((v) => v.split(".").slice(0, 2).join(".")))].sort();
+
+  container.innerHTML = [
+    `<button class="lang-btn active" data-php="all">${t("common.all")}</button>`,
+    `<button class="lang-btn" data-php="static">Static</button>`,
+    ...versions.map((v) => `<button class="lang-btn" data-php="${v}">PHP ${v}</button>`),
+  ].join("");
 }
 
 // ── Render ─────────────────────────────────────────────────────────────────────
@@ -117,14 +155,20 @@ function renderFilteredSites() {
   const list = document.getElementById("sites-list");
   if (!list || !list._allRows) return;
 
+  let filtered = currentSites;
+
   const q = searchQuery.trim().toLowerCase();
-  const filtered = q
-    ? currentSites.filter(
-        (s) =>
-          s.domain.toLowerCase().includes(q) ||
-          s.root.toLowerCase().includes(q),
-      )
-    : currentSites;
+  if (q) {
+    filtered = filtered.filter(
+      (s) => s.domain.toLowerCase().includes(q) || s.root.toLowerCase().includes(q)
+    );
+  }
+
+  if (filterStatus === "active") filtered = filtered.filter((s) => s.active);
+  else if (filterStatus === "inactive") filtered = filtered.filter((s) => !s.active);
+
+  if (filterPHP === "static") filtered = filtered.filter((s) => !s.php || s.php === "0");
+  else if (filterPHP !== "all") filtered = filtered.filter((s) => s.php === filterPHP);
 
   if (filtered.length === 0) {
     list.innerHTML = `<div style="color:var(--text3);font-size:11px">${t("sites.no_results")}</div>`;
