@@ -1,0 +1,167 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  lang: string;
+  title?: string;
+  description?: string;
+}
+
+const { lang, title = 'VeltryNora', description = 'Local development environment manager for Windows.' } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const siteUrl = 'https://0ktav.github.io/VeltryNora';
+
+const langLinks = [
+  { code: 'en', label: 'EN', href: base + '/' },
+  { code: 'ro', label: 'RO', href: base + '/ro/' },
+  { code: 'ru', label: 'RU', href: base + '/ru/' },
+];
+
+const canonicalMap: Record<string, string> = {
+  en: siteUrl + '/',
+  ro: siteUrl + '/ro/',
+  ru: siteUrl + '/ru/',
+};
+
+const localeMap: Record<string, string> = {
+  en: 'en_US',
+  ro: 'ro_RO',
+  ru: 'ru_RU',
+};
+
+const canonicalUrl = canonicalMap[lang] ?? siteUrl + '/';
+const ogImage = siteUrl + '/screenshots/dashboard-dark.png';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'VeltryNora',
+  operatingSystem: 'Windows',
+  applicationCategory: 'DeveloperApplication',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  description,
+  url: siteUrl + '/',
+  downloadUrl: 'https://github.com/0ktav/VeltryNora/releases/latest/download/VeltryNora-Setup.exe',
+  softwareVersion: '1.2.0',
+  license: 'https://github.com/0ktav/VeltryNora/blob/main/LICENSE',
+};
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+
+    <!-- Canonical -->
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- hreflang -->
+    <link rel="alternate" hreflang="en"       href={siteUrl + '/'} />
+    <link rel="alternate" hreflang="ro"       href={siteUrl + '/ro/'} />
+    <link rel="alternate" hreflang="ru"       href={siteUrl + '/ru/'} />
+    <link rel="alternate" hreflang="x-default" href={siteUrl + '/'} />
+
+    <!-- Open Graph -->
+    <meta property="og:type"        content="website" />
+    <meta property="og:url"         content={canonicalUrl} />
+    <meta property="og:title"       content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image"       content={ogImage} />
+    <meta property="og:locale"      content={localeMap[lang] ?? 'en_US'} />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:title"       content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image"       content={ogImage} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href={base + '/favicon.svg'} />
+
+    <!-- JSON-LD -->
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body class="bg-[#080d1a] text-slate-100 antialiased">
+
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-50 border-b border-slate-800/60 bg-[#080d1a]/90 backdrop-blur-md">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 flex items-center justify-between h-16">
+        <a href={base + '/'} class="flex items-center gap-2.5 font-bold text-lg tracking-tight text-white hover:text-blue-400 transition-colors">
+          <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="nb" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#1a2230"/><stop offset="100%" stop-color="#0d1117"/>
+              </linearGradient>
+              <linearGradient id="nl" x1="20" y1="22" x2="80" y2="76" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#00e5bb"/><stop offset="100%" stop-color="#00b8d4"/>
+              </linearGradient>
+              <linearGradient id="nr" x1="80" y1="22" x2="50" y2="76" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#00c4f0"/><stop offset="100%" stop-color="#00a0cc"/>
+              </linearGradient>
+            </defs>
+            <rect width="100" height="100" rx="22" fill="url(#nb)"/>
+            <polyline points="20,22 50,76 80,22" fill="none" stroke="#00d4aa" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.12"/>
+            <line x1="20" y1="22" x2="50" y2="76" stroke="url(#nl)" stroke-width="9.5" stroke-linecap="round"/>
+            <line x1="80" y1="22" x2="50" y2="76" stroke="url(#nr)" stroke-width="9.5" stroke-linecap="round"/>
+            <circle cx="50" cy="76" r="2.5" fill="#00e5bb" opacity="0.55"/>
+          </svg>
+          VeltryNora
+        </a>
+
+        <div class="flex items-center gap-1 sm:gap-2">
+          <!-- Language switcher -->
+          <div class="flex items-center gap-0.5 mr-2">
+            {langLinks.map(l => (
+              <a
+                href={l.href}
+                class={[
+                  'px-2 py-1 rounded text-xs font-medium transition-colors',
+                  lang === l.code
+                    ? 'bg-blue-500/20 text-blue-400'
+                    : 'text-slate-400 hover:text-slate-200'
+                ].join(' ')}
+              >
+                {l.label}
+              </a>
+            ))}
+          </div>
+
+          <a
+            href="https://github.com/0ktav/VeltryNora/releases/latest"
+            target="_blank"
+            rel="noopener"
+            class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors"
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 0 1 2.53 15.59c-.4.07-.55-.17-.55-.38v-1.98c0-.67-.23-1.1-.49-1.32 1.6-.18 3.28-.78 3.28-3.53 0-.78-.28-1.42-.74-1.92.07-.18.32-.91-.07-1.9 0 0-.6-.19-1.97.74A6.86 6.86 0 0 0 8 4.95a6.86 6.86 0 0 0-1.79.24C4.84 4.17 4.24 4.36 4.24 4.36c-.39.99-.14 1.72-.07 1.9-.46.5-.74 1.14-.74 1.92 0 2.74 1.67 3.35 3.26 3.54-.2.18-.39.5-.46.96-.41.18-1.46.5-2.1-.6 0 0-.38-.69-1.1-.74 0 0-.7-.01-.05.44 0 0 .47.22.8 1.04 0 0 .42 1.28 2.42.85v1.38c0 .21-.14.45-.54.38A8 8 0 0 1 8 0z"/></svg>
+            Download
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <slot />
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/60 py-10 mt-8">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 text-center space-y-3">
+        <div class="flex items-center justify-center gap-6 text-sm text-slate-400">
+          <a href="https://github.com/0ktav/VeltryNora" target="_blank" rel="noopener" class="hover:text-slate-200 transition-colors flex items-center gap-1.5">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 0 1 2.53 15.59c-.4.07-.55-.17-.55-.38v-1.98c0-.67-.23-1.1-.49-1.32 1.6-.18 3.28-.78 3.28-3.53 0-.78-.28-1.42-.74-1.92.07-.18.32-.91-.07-1.9 0 0-.6-.19-1.97.74A6.86 6.86 0 0 0 8 4.95a6.86 6.86 0 0 0-1.79.24C4.84 4.17 4.24 4.36 4.24 4.36c-.39.99-.14 1.72-.07 1.9-.46.5-.74 1.14-.74 1.92 0 2.74 1.67 3.35 3.26 3.54-.2.18-.39.5-.46.96-.41.18-1.46.5-2.1-.6 0 0-.38-.69-1.1-.74 0 0-.7-.01-.05.44 0 0 .47.22.8 1.04 0 0 .42 1.28 2.42.85v1.38c0 .21-.14.45-.54.38A8 8 0 0 1 8 0z"/></svg>
+            GitHub
+          </a>
+          <span class="text-slate-600">·</span>
+          <span>MIT License</span>
+          <span class="text-slate-600">·</span>
+          <span>v1.2.0</span>
+        </div>
+        <p class="text-xs text-slate-600">
+          <slot name="footer-text" />
+        </p>
+      </div>
+    </footer>
+
+  </body>
+</html>
