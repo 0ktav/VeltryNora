@@ -83,18 +83,19 @@ export function openInstallModal({
     // Close modal immediately — download continues in the sidebar widget
     close();
 
-    startDownload(eventName, serviceName ? `${serviceName} ${version}` : version);
+    const resolvedEventName = typeof eventName === "function" ? eventName(version) : eventName;
+    const downloadId = startDownload(resolvedEventName, serviceName ? `${serviceName} ${version}` : version);
 
     const result = await installFn(version);
     const ok = typeof result === "string" ? result === "" : result;
     const errMsg = typeof result === "string" && result !== "" ? result : null;
 
     if (!ok) {
-      errorDownload(eventName, errMsg || t("common.install_error"));
+      errorDownload(downloadId, errMsg || t("common.install_error"));
       return;
     }
 
-    finishDownload(eventName);
+    finishDownload(downloadId);
 
     if (onInstalled) await onInstalled(version);
   }
@@ -149,9 +150,10 @@ export async function runInstall({
   btn.disabled = true;
   btn.textContent = t("common.installing");
 
-  startDownload(eventName, serviceName ? `${serviceName} ${version}` : version);
+  const resolvedEventName = typeof eventName === "function" ? eventName(version) : eventName;
+  const downloadId = startDownload(resolvedEventName, serviceName ? `${serviceName} ${version}` : version);
 
-  EventsOn(eventName, ({ percent, totalMB }) => {
+  EventsOn(resolvedEventName, ({ percent, totalMB }) => {
     if (percent >= 0) {
       bar.style.width = percent + "%";
       bar.style.opacity = "";
@@ -175,7 +177,7 @@ export async function runInstall({
   const errMsg = typeof result === "string" && result !== "" ? result : null;
 
   if (!ok) {
-    errorDownload(eventName, errMsg || t("common.install_error"));
+    errorDownload(downloadId, errMsg || t("common.install_error"));
     label.textContent = errMsg || t("common.install_error");
     label.title = errMsg || "";
     label.style.color = "var(--danger)";
@@ -184,7 +186,7 @@ export async function runInstall({
     return null;
   }
 
-  finishDownload(eventName);
+  finishDownload(downloadId);
 
   label.style.color = "";
   label.title = "";

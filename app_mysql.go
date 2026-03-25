@@ -60,7 +60,7 @@ func (a *App) IsMySQLRunning() bool {
 
 func (a *App) InstallMySQL(version string) string {
 	err := mysql.Install(version, func(percent int, totalMB float64) {
-		runtime.EventsEmit(a.ctx, "mysql:install-progress", map[string]interface{}{"percent": percent, "totalMB": totalMB})
+		runtime.EventsEmit(a.ctx, "mysql:install-progress:"+version, map[string]interface{}{"percent": percent, "totalMB": totalMB})
 	})
 	if err != nil {
 		return err.Error()

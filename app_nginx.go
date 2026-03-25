@@ -42,7 +42,7 @@ func (a *App) IsNginxRunning() bool {
 
 func (a *App) DownloadNginx(version string) bool {
 	err := nginx.Download(version, func(percent int, totalMB float64) {
-		runtime.EventsEmit(a.ctx, "nginx:download-progress", map[string]interface{}{"percent": percent, "totalMB": totalMB})
+		runtime.EventsEmit(a.ctx, "nginx:download-progress:"+version, map[string]interface{}{"percent": percent, "totalMB": totalMB})
 	})
 	return err == nil
 }

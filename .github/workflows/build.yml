@@ -40,7 +40,9 @@ jobs:
 
       - name: Build installer
         shell: bash
-        run: iscc installer.iss
+        run: |
+          VERSION=$(jq -r '.version' wails.json)
+          iscc /DAppVersion="$VERSION" installer.iss
 
       - name: Upload installer
         uses: actions/upload-artifact@v4

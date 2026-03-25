@@ -1,4 +1,4 @@
-import { GetAppInfo, CheckForUpdates, OpenURL } from "../../wailsjs/go/main/App";
+import { GetAppInfo, CheckForUpdates, OpenURL, GetInstallLocation } from "../../wailsjs/go/main/App";
 import { EventsOn } from "../../wailsjs/runtime";
 import { t } from "./i18n.js";
 import { getPendingUpdate, downloadAndInstall, installUpdate, hideUpdateBadge } from "./updater.js";
@@ -113,9 +113,17 @@ function showUpdateAvailable(result) {
     });
 
     await downloadAndInstall(result.downloadURL, result.latestVersion, {
-      onDownloaded: () => {
+      onDownloaded: async () => {
         if (progressWrap) progressWrap.style.display = "none";
         downloadBtn.style.display = "none";
+
+        const installLocation = await GetInstallLocation();
+        const locationEl = document.getElementById("about-install-location");
+        if (locationEl && installLocation) {
+          locationEl.textContent = `→ ${installLocation}`;
+          locationEl.style.display = "block";
+        }
+
         const installBtn = document.getElementById("about-install-btn");
         if (installBtn) {
           installBtn.style.display = "inline-flex";

@@ -38,17 +38,17 @@ export function hideUpdateBadge() {
  * @param {{ onProgress, onSuccess, onError }} callbacks
  */
 export async function downloadAndInstall(downloadURL, latestVersion, { onDownloaded, onError }) {
-  startDownload("update:download-progress", `VeltryNora v${latestVersion}`);
+  const downloadId = startDownload("update:download-progress", `VeltryNora v${latestVersion}`);
 
   const errMsg = await DownloadUpdate(downloadURL);
 
   if (errMsg) {
-    errorDownload("update:download-progress", errMsg);
+    errorDownload(downloadId, errMsg);
     if (onError) onError(errMsg);
     return;
   }
 
-  finishDownload("update:download-progress");
+  finishDownload(downloadId);
   if (onDownloaded) onDownloaded();
 }
 

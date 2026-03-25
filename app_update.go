@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"unsafe"
 
 	"nginxpanel/internal/utils"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"golang.org/x/sys/windows/registry"
 )
 
 var (
@@ -39,6 +41,37 @@ func updateInstallerPath() string {
 	return filepath.Join(os.TempDir(), "VeltryNora-Setup.exe")
 }
 
+// installedLocation reads the InstallLocation from the registry uninstall entry.
+// Returns empty string if not found.
+func installedLocation() string {
+	const uninstallBase = `Software\Microsoft\Windows\CurrentVersion\Uninstall`
+	k, err := registry.OpenKey(registry.LOCAL_MACHINE, uninstallBase, registry.ENUMERATE_SUB_KEYS)
+	if err != nil {
+		return ""
+	}
+	defer k.Close()
+
+	names, err := k.ReadSubKeyNames(-1)
+	if err != nil {
+		return ""
+	}
+
+	for _, name := range names {
+		sub, err := registry.OpenKey(registry.LOCAL_MACHINE, uninstallBase+`\`+name, registry.QUERY_VALUE)
+		if err != nil {
+			continue
+		}
+		displayName, _, _ := sub.GetStringValue("DisplayName")
+		if strings.EqualFold(displayName, "VeltryNora") {
+			location, _, _ := sub.GetStringValue("InstallLocation")
+			sub.Close()
+			return strings.TrimRight(location, `\/`)
+		}
+		sub.Close()
+	}
+	return ""
+}
+
 // DownloadUpdate downloads the installer to the temp directory.
 // Returns "" on success, error message on failure.
 func (a *App) DownloadUpdate(url string) string {
@@ -57,6 +90,11 @@ func (a *App) DownloadUpdate(url string) string {
 	return ""
 }
 
+// GetInstallLocation returns the confirmed install location from the registry, or empty string if unknown.
+func (a *App) GetInstallLocation() string {
+	return installedLocation()
+}
+
 // shellExecute runs a program via ShellExecuteExW so that UAC elevation
 // preserves the command-line arguments passed in params.
 func shellExecute(file, params string) error {
@@ -69,7 +107,7 @@ func shellExecute(file, params string) error {
 		lpVerb:       verb,
 		lpFile:       filep,
 		lpParameters: paramsp,
-		nShow:        0, // SW_HIDE — suppressed anyway by /S
+		nShow:        1, // SW_SHOWNORMAL
 	}
 	info.cbSize = uint32(unsafe.Sizeof(info))
 
@@ -88,13 +126,12 @@ func (a *App) InstallUpdate() string {
 	if _, err := os.Stat(installer); os.IsNotExist(err) {
 		return fmt.Sprintf("installer not found: %s", installer)
 	}
-	exePath, err := os.Executable()
-	if err != nil {
-		return err.Error()
+	// /DIR= pre-fills the install directory in the Inno Setup wizard.
+	// Only pass it when we have a confirmed previous install location from the registry.
+	params := ""
+	if installDir := installedLocation(); installDir != "" {
+		params = `/DIR="` + installDir + `"`
 	}
-	installDir := filepath.Dir(exePath)
-	// /S = silent; /D= must be last and unquoted (NSIS requirement)
-	params := `/S /D=` + installDir
 	if err := shellExecute(installer, params); err != nil {
 		return err.Error()
 	}

@@ -19,6 +19,7 @@ import {
   CheckComposer,
   CreateLaravelProject,
   ChangeSitePHP,
+  ChangeSiteRoot,
   OpenInBrowser,
   RunArtisan,
   RunLaravelUpdate,
@@ -53,6 +54,7 @@ export function init() {
       else if (action === "rewrites") await openRewritesPanel(name);
       else if (action === "log") await openLogPanel(name);
       else if (action === "change-php") await openChangePHPPanel(name);
+      else if (action === "change-root") await openChangeRootPanel(name);
       else if (action === "laravel") await openLaravelPanel(name);
       else if (action === "toggle") await toggleSite(btn, name);
       else if (action === "delete") await deleteSite(name);
@@ -212,6 +214,9 @@ function buildSiteRow(site, phpRunning, nginxRunning) {
           <button class="btn btn-secondary btn-icon" data-action="change-php" data-name="${site.name}" title="${t("sites.change_php")}">
             <i data-lucide="cpu"></i>
           </button>
+          <button class="btn btn-secondary btn-icon" data-action="change-root" data-name="${site.name}" title="${t("sites.change_root")}">
+            <i data-lucide="folder-symlink"></i>
+          </button>
           ${site.laravel_version ? `<button class="btn btn-secondary btn-icon" data-action="laravel" data-name="${site.name}" title="${t("sites.laravel_panel")}" style="color:var(--accent3)"><i data-lucide="flame"></i></button>` : ""}
           <button class="btn btn-secondary btn-icon" data-action="rewrites" data-name="${site.name}" title="${t("sites.rewrites")}">
             <i data-lucide="route"></i>
@@ -228,6 +233,7 @@ function buildSiteRow(site, phpRunning, nginxRunning) {
         </div>
       </div>
       <div class="php-config-panel" id="site-php-${site.name}" style="display:none"></div>
+      <div class="php-config-panel" id="site-root-${site.name}" style="display:none"></div>
       <div class="php-config-panel" id="site-rewrites-${site.name}" style="display:none"></div>
       <div class="php-config-panel" id="site-log-${site.name}" style="display:none"></div>
       <div class="php-config-panel" id="site-laravel-${site.name}" style="display:none"></div>
@@ -374,9 +380,16 @@ async function openNewSiteModal() {
   const domainInput = modal.querySelector("#modal-site-domain");
   domainInput.focus();
 
+  function onKey(e) {
+    if (e.key === "Enter" && e.target !== modal.querySelector("#modal-browse-btn")) {
+      onCreateSite(modal, close);
+    }
+  }
+
   const close = () => {
     EventsOff("laravel-output");
     EventsOff("laravel-done");
+    document.removeEventListener("keydown", onKey);
     overlay.remove();
   };
 
@@ -437,7 +450,7 @@ async function openNewSiteModal() {
   modal
     .querySelector("#modal-browse-btn")
     .addEventListener("click", async () => {
-      const path = await BrowseFolder();
+      const path = await BrowseFolder("");
       if (path) modal.querySelector("#modal-site-root").value = path;
     });
 
@@ -456,15 +469,7 @@ async function openNewSiteModal() {
 
   modal.querySelector("#modal-site-cancel").addEventListener("click", close);
 
-  document.addEventListener("keydown", function onKey(e) {
-    if (
-      e.key === "Enter" &&
-      e.target !== modal.querySelector("#modal-browse-btn")
-    ) {
-      onCreateSite(modal, close);
-      document.removeEventListener("keydown", onKey);
-    }
-  });
+  document.addEventListener("keydown", onKey);
 
   modal
     .querySelector("#modal-site-create")
@@ -721,6 +726,58 @@ async function openChangePHPPanel(name) {
         await alert(t("common.error"), t("sites.change_php_error"), "danger");
       }
     });
+}
+
+// ── Panel: change root ─────────────────────────────────────────────────────────
+
+async function openChangeRootPanel(name) {
+  const panel = document.getElementById(`site-root-${name}`);
+  if (!panel) return;
+
+  if (panel.style.display !== "none") {
+    panel.style.display = "none";
+    return;
+  }
+
+  panel.innerHTML = `<div style="padding:12px;color:var(--text3);font-size:12px">${t("common.loading")}</div>`;
+  panel.style.display = "block";
+
+  const sites = await GetSites();
+  const site = sites.find((s) => s.name === name);
+  const currentRoot = site?.root ?? "";
+
+  panel.innerHTML = `
+    <div class="php-config-body">
+      <div style="display:flex;align-items:center;gap:8px">
+        <input id="site-root-input-${name}" class="input" type="text" value="${escapeHtml(currentRoot)}" style="flex:1;font-size:12px" placeholder="${escapeHtml(currentRoot)}" />
+        <button class="btn btn-secondary btn-icon" id="site-root-browse-${name}" title="${t("sites.browse")}"><i data-lucide="folder-open"></i></button>
+        <button class="btn btn-primary" id="site-root-save-${name}">${t("common.save")}</button>
+      </div>
+    </div>
+  `;
+  createIcons({ icons });
+
+  document.getElementById(`site-root-browse-${name}`)?.addEventListener("click", async () => {
+    const path = await BrowseFolder(currentRoot);
+    if (path) document.getElementById(`site-root-input-${name}`).value = path;
+  });
+
+  document.getElementById(`site-root-save-${name}`)?.addEventListener("click", async () => {
+    const saveBtn = document.getElementById(`site-root-save-${name}`);
+    const newRoot = document.getElementById(`site-root-input-${name}`).value.trim();
+    if (!newRoot) return;
+    saveBtn.disabled = true;
+
+    const ok = await ChangeSiteRoot(name, newRoot);
+    if (ok) {
+      await RestartNginx();
+      panel.style.display = "none";
+      await renderSites();
+    } else {
+      saveBtn.disabled = false;
+      await alert(t("common.error"), t("sites.change_root_error"), "danger");
+    }
+  });
 }
 
 // ── Panel: rewrites ────────────────────────────────────────────────────────────

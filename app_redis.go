@@ -40,7 +40,7 @@ func (a *App) IsRedisRunning() bool {
 
 func (a *App) DownloadRedis(version string) bool {
 	err := redis.Download(version, func(percent int, totalMB float64) {
-		runtime.EventsEmit(a.ctx, "redis:download-progress", map[string]interface{}{"percent": percent, "totalMB": totalMB})
+		runtime.EventsEmit(a.ctx, "redis:download-progress:"+version, map[string]interface{}{"percent": percent, "totalMB": totalMB})
 	})
 	return err == nil
 }

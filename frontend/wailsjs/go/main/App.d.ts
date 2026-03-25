@@ -9,11 +9,13 @@ import {sites} from '../models';
 
 export function AddHostEntry(arg1:string,arg2:string):Promise<boolean>;
 
-export function BrowseFolder():Promise<string>;
+export function BrowseFolder(arg1:string):Promise<string>;
 
 export function BrowseHtaccessFile():Promise<string>;
 
 export function ChangeSitePHP(arg1:string,arg2:string):Promise<boolean>;
+
+export function ChangeSiteRoot(arg1:string,arg2:string):Promise<boolean>;
 
 export function CheckComposer():Promise<string>;
 
@@ -96,6 +98,8 @@ export function GetBasePath():Promise<string>;
 export function GetDefaultBasePath():Promise<string>;
 
 export function GetHostsEntries():Promise<Array<hosts.HostEntry>>;
+
+export function GetInstallLocation():Promise<string>;
 
 export function GetInstalledBrowsers():Promise<Array<system.Browser>>;
 

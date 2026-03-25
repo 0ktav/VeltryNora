@@ -1,7 +1,8 @@
 import { EventsOn } from "../../wailsjs/runtime";
 
-// Map<eventName, { elEntry, elBar, elPct, elSize }>
+// Map<downloadId, { elEntry, elBar, elPct, elSize }>
 const active = new Map();
+let nextId = 0;
 
 let container = null;
 
@@ -13,9 +14,12 @@ export function initDownloader() {
  * Register a new active download and show it in the sidebar.
  * @param {string} eventName - Wails event name (e.g. "nginx:download-progress")
  * @param {string} label     - Human label shown in the sidebar (e.g. "Nginx 1.27.4")
+ * @returns {string} downloadId - unique ID to pass to finishDownload / errorDownload
  */
 export function startDownload(eventName, label) {
-  if (!container) return;
+  if (!container) return "";
+
+  const downloadId = `${eventName}|${nextId++}`;
 
   const entry = document.createElement("div");
   entry.className = "dl-entry";
@@ -43,10 +47,10 @@ export function startDownload(eventName, label) {
     elSize: entry.querySelector(".dl-size"),
   };
 
-  active.set(eventName, dl);
+  active.set(downloadId, dl);
 
   EventsOn(eventName, ({ percent, totalMB }) => {
-    const d = active.get(eventName);
+    const d = active.get(downloadId);
     if (!d) return;
 
     if (percent >= 0) {
@@ -64,14 +68,16 @@ export function startDownload(eventName, label) {
       d.elSize.textContent = "";
     }
   });
+
+  return downloadId;
 }
 
 /**
  * Mark a download as finished successfully and remove its entry from the sidebar.
- * @param {string} eventName
+ * @param {string} downloadId - ID returned by startDownload
  */
-export function finishDownload(eventName) {
-  const dl = active.get(eventName);
+export function finishDownload(downloadId) {
+  const dl = active.get(downloadId);
   if (!dl) return;
 
   dl.elBar.style.width = "100%";
@@ -82,7 +88,7 @@ export function finishDownload(eventName) {
 
   setTimeout(() => {
     dl.elEntry.remove();
-    active.delete(eventName);
+    active.delete(downloadId);
     if (active.size === 0 && container) {
       container.style.display = "none";
     }
@@ -91,11 +97,11 @@ export function finishDownload(eventName) {
 
 /**
  * Mark a download as failed, show error in the sidebar entry, then remove it.
- * @param {string} eventName
+ * @param {string} downloadId - ID returned by startDownload
  * @param {string} message
  */
-export function errorDownload(eventName, message) {
-  const dl = active.get(eventName);
+export function errorDownload(downloadId, message) {
+  const dl = active.get(downloadId);
   if (!dl) return;
 
   dl.elBar.style.width = "100%";
@@ -107,7 +113,7 @@ export function errorDownload(eventName, message) {
 
   setTimeout(() => {
     dl.elEntry.remove();
-    active.delete(eventName);
+    active.delete(downloadId);
     if (active.size === 0 && container) {
       container.style.display = "none";
     }

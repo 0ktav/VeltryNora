@@ -6,8 +6,8 @@ export function AddHostEntry(arg1, arg2) {
   return window['go']['main']['App']['AddHostEntry'](arg1, arg2);
 }
 
-export function BrowseFolder() {
-  return window['go']['main']['App']['BrowseFolder']();
+export function BrowseFolder(arg1) {
+  return window['go']['main']['App']['BrowseFolder'](arg1);
 }
 
 export function BrowseHtaccessFile() {
@@ -16,6 +16,10 @@ export function BrowseHtaccessFile() {
 
 export function ChangeSitePHP(arg1, arg2) {
   return window['go']['main']['App']['ChangeSitePHP'](arg1, arg2);
+}
+
+export function ChangeSiteRoot(arg1, arg2) {
+  return window['go']['main']['App']['ChangeSiteRoot'](arg1, arg2);
 }
 
 export function CheckComposer() {
@@ -180,6 +184,10 @@ export function GetDefaultBasePath() {
 
 export function GetHostsEntries() {
   return window['go']['main']['App']['GetHostsEntries']();
+}
+
+export function GetInstallLocation() {
+  return window['go']['main']['App']['GetInstallLocation']();
 }
 
 export function GetInstalledBrowsers() {

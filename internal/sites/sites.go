@@ -320,11 +320,12 @@ func DeleteSite(name string, deleteFolder bool) error {
 	if deleteFolder {
 		site, err := GetSiteByName(name)
 		if err == nil && site.Root != "" {
-			target := site.Root
-			parent := filepath.Dir(site.Root)
-			defaultParent := filepath.Join(basePath, config.WWWFolder, site.Domain)
-			if filepath.Clean(parent) == filepath.Clean(defaultParent) {
-				target = parent
+			target := filepath.Clean(filepath.FromSlash(site.Root))
+			defaultParent := filepath.Clean(filepath.Join(basePath, config.WWWFolder, site.Domain))
+			// If the root is anywhere inside the default site directory, delete the whole site directory.
+			rel, relErr := filepath.Rel(defaultParent, target)
+			if relErr == nil && !strings.HasPrefix(rel, "..") {
+				target = defaultParent
 			}
 			if isSafeToDelete(target, basePath) {
 				os.RemoveAll(target)
@@ -397,6 +398,33 @@ func isSafeToDelete(target string, appBasePath string) bool {
 	}
 
 	return true
+}
+
+func ChangeSiteRoot(name string, newRoot string) error {
+	basePath := system.GetBasePath()
+	sitesPath := filepath.Join(basePath, config.ConfigFolder, config.SitesFolder)
+
+	path := filepath.Join(sitesPath, name+".conf")
+	active := true
+	if _, err := os.Stat(path); err != nil {
+		path = filepath.Join(sitesPath, name+".disabled")
+		active = false
+	}
+
+	site, err := parseConfig(path, name, active)
+	if err != nil {
+		return fmt.Errorf("site not found")
+	}
+
+	rewrites := GetSiteRewrites(name)
+
+	phpPort := 0
+	if site.PHP != "" {
+		phpPort = versionToPort(site.PHP)
+	}
+
+	cfg := generateConfigWithRewrites(site.Domain, newRoot, phpPort, basePath, rewrites)
+	return os.WriteFile(path, []byte(cfg), 0644)
 }
 
 func ChangeSitePHP(name string, phpVersion string) error {

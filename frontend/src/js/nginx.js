@@ -22,6 +22,7 @@ let currentNginxLogType = "error";
 
 let isActivating = false;
 let isDeleting = false;
+const installingVersions = new Set();
 
 async function loadNginxPage() {
   const installed = await GetNginxInstalledVersions();
@@ -50,11 +51,17 @@ async function loadNginxPage() {
           GetNginxAvailableVersions(),
           GetNginxInstalledVersions(),
         ]);
-        return available.filter((v) => !installed.includes(v));
+        return available.filter((v) => !installed.includes(v) && !installingVersions.has(v));
       },
-      installFn: DownloadNginx,
-      eventName: "nginx:download-progress",
-      onInstalled: async () => {
+      installFn: async (version) => {
+        installingVersions.add(version);
+        const result = await DownloadNginx(version);
+        if (!result) installingVersions.delete(version);
+        return result;
+      },
+      eventName: (version) => `nginx:download-progress:${version}`,
+      onInstalled: async (version) => {
+        installingVersions.delete(version);
         const [installed, active] = await Promise.all([
           GetNginxInstalledVersions(),
           GetNginxActiveVersion(),

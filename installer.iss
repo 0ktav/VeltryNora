@@ -1,5 +1,7 @@
 #define AppName "VeltryNora"
-#define AppVersion "1.0.0"
+#ifndef AppVersion
+  #define AppVersion "1.0.0"
+#endif
 #define AppPublisher "0ktav"
 #define AppURL "https://github.com/0ktav/VeltryNora"
 #define AppExeName "VeltryNora.exe"
@@ -30,6 +32,7 @@ VersionInfoProductVersion={#AppVersion}
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+DisableDirPage=no
 UninstallDisplayIcon={app}\{#AppExeName}
 UninstallDisplayName={#AppName}
 

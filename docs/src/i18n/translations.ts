@@ -42,7 +42,7 @@ export const translations = {
         {
           icon: 'sites',
           name: 'Virtual Sites',
-          desc: 'Custom local domains, PHP version per site, hosts file managed automatically.',
+          desc: 'Custom local domains, PHP version and public root per site, hosts file managed automatically.',
         },
         {
           icon: 'laravel',
@@ -157,7 +157,7 @@ export const translations = {
         {
           icon: 'sites',
           name: 'Site-uri virtuale',
-          desc: 'Domenii locale custom, versiune PHP per site, hosts gestionat automat.',
+          desc: 'Domenii locale custom, versiune PHP și cale publică per site, hosts gestionat automat.',
         },
         {
           icon: 'laravel',
@@ -272,7 +272,7 @@ export const translations = {
         {
           icon: 'sites',
           name: 'Виртуальные сайты',
-          desc: 'Локальные домены, версия PHP для каждого сайта, hosts управляется автоматически.',
+          desc: 'Локальные домены, версия PHP и публичный путь для каждого сайта, hosts управляется автоматически.',
         },
         {
           icon: 'laravel',

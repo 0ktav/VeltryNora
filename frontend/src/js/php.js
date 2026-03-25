@@ -26,6 +26,7 @@ import { createIcons, icons } from "lucide";
 let isStartingPHP = false;
 let isStoppingPHP = false;
 let isDeletingPHP = false;
+const installingVersions = new Set();
 
 async function loadPHPPage() {
   const installed = await GetPHPInstalledVersions();
@@ -68,13 +69,24 @@ async function loadPHPPage() {
         const installedMinors = new Set(
           inst.map((v) => v.split(".").slice(0, 2).join(".")),
         );
-        return available.filter(
-          (v) => !installedMinors.has(v.split(".").slice(0, 2).join(".")),
+        const installingMinors = new Set(
+          [...installingVersions].map((v) => v.split(".").slice(0, 2).join(".")),
         );
+        return available.filter((v) => {
+          const minor = v.split(".").slice(0, 2).join(".");
+          return !installedMinors.has(minor) && !installingMinors.has(minor);
+        });
       },
-      installFn: DownloadPHP,
-      eventName: "php:download-progress",
-      onInstalled: async () => {
+      installFn: async (version) => {
+        installingVersions.add(version);
+        const result = await DownloadPHP(version);
+        const ok = typeof result === "string" ? result === "" : result;
+        if (!ok) installingVersions.delete(version);
+        return result;
+      },
+      eventName: (version) => `php:download-progress:${version}`,
+      onInstalled: async (version) => {
+        installingVersions.delete(version);
         const inst = await GetPHPInstalledVersions();
         await renderInstalledVersions(inst);
       },

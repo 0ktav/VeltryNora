@@ -1,3 +1,17 @@
+## v1.3.0 — 2026-03-25
+
+### Added
+- **Sites: change public path** — new panel per site to change the Nginx root directory, with a folder browser that opens at the current root
+
+### Fixed
+- **Installer: parallel downloads** — each version now has its own progress event channel; downloading multiple versions in parallel no longer mixes up progress bars or causes them to freeze
+- **Installer: duplicate installs prevented** — a version being downloaded is excluded from the install modal list until the download completes or fails
+- **Installer: active version preserved on parallel install** — installing multiple MySQL versions no longer overrides the currently active version with whichever finishes last
+- **Sites: new site modal Enter key leak** — pressing Enter after cancelling the new site modal no longer re-triggers site creation
+- **Sites: delete site with nested root** — deleting a site whose root is a subdirectory inside the default site folder now correctly removes the parent folder
+
+---
+
 ## v1.2.0 — 2026-03-24
 
 ### Added

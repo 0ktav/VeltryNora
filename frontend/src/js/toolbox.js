@@ -255,7 +255,7 @@ async function downloadTool(tool) {
     errorMsg = msg;
   };
 
-  startDownload(event, toolLabel);
+  const downloadId = startDownload(event, toolLabel);
   EventsOn(event, onProgress);
   EventsOn(`${tool}:download-error`, onError);
 
@@ -266,7 +266,7 @@ async function downloadTool(tool) {
 
   EventsOff(event);
   EventsOff(`${tool}:download-error`);
-  finishDownload(event);
+  finishDownload(downloadId);
 
   if (ok) {
     if (tool === "git") await renderGitCard();

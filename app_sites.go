@@ -46,9 +46,10 @@ func (a *App) OpenFolder(path string) {
 	exec.Command("explorer", path).Start()
 }
 
-func (a *App) BrowseFolder() string {
+func (a *App) BrowseFolder(startPath string) string {
 	path, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
-		Title: "Selectează folderul rădăcină",
+		Title:            "Selectează folderul rădăcină",
+		DefaultDirectory: startPath,
 	})
 	if err != nil {
 		return ""
@@ -88,6 +89,10 @@ func (a *App) SaveSiteRewrites(name string, rules string) bool {
 
 func (a *App) ChangeSitePHP(name string, phpVersion string) bool {
 	return sites.ChangeSitePHP(name, phpVersion) == nil
+}
+
+func (a *App) ChangeSiteRoot(name string, newRoot string) bool {
+	return sites.ChangeSiteRoot(name, newRoot) == nil
 }
 
 func (a *App) FlushDNS() bool {

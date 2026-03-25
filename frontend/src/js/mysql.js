@@ -35,6 +35,7 @@ import { createIcons, icons } from "lucide";
 let isActivating = false;
 let isDeleting = false;
 let mysqlLogInterval = null;
+const installingVersions = new Set();
 
 async function loadMySQLPage() {
   const installed = await GetMySQLInstalledVersions();
@@ -64,12 +65,20 @@ function openInstallFlow() {
         GetMySQLAvailableVersions(),
         GetMySQLInstalledVersions(),
       ]);
-      return available.filter((v) => !installed.includes(v));
+      return available.filter((v) => !installed.includes(v) && !installingVersions.has(v));
     },
-    installFn: InstallMySQL,
-    eventName: "mysql:install-progress",
+    installFn: async (version) => {
+      installingVersions.add(version);
+      const result = await InstallMySQL(version);
+      const ok = typeof result === "string" ? result === "" : result;
+      if (!ok) installingVersions.delete(version);
+      return result;
+    },
+    eventName: (version) => `mysql:install-progress:${version}`,
     onInstalled: async (version) => {
-      await SetMySQLActiveVersion(version);
+      installingVersions.delete(version);
+      const currentActive = await GetMySQLActiveVersion();
+      if (!currentActive) await SetMySQLActiveVersion(version);
       await loadMySQLPage();
     },
   });

@@ -21,6 +21,7 @@ import { createIcons, icons } from "lucide";
 
 let isActivating = false;
 let isDeleting = false;
+const installingVersions = new Set();
 let redisLogInterval = null;
 
 async function loadRedisPage() {
@@ -50,11 +51,17 @@ async function loadRedisPage() {
           GetRedisAvailableVersions(),
           GetRedisInstalledVersions(),
         ]);
-        return available.filter((v) => !installed.includes(v));
+        return available.filter((v) => !installed.includes(v) && !installingVersions.has(v));
       },
-      installFn: DownloadRedis,
-      eventName: "redis:download-progress",
-      onInstalled: async () => {
+      installFn: async (version) => {
+        installingVersions.add(version);
+        const result = await DownloadRedis(version);
+        if (!result) installingVersions.delete(version);
+        return result;
+      },
+      eventName: (version) => `redis:download-progress:${version}`,
+      onInstalled: async (version) => {
+        installingVersions.delete(version);
         const [installed, active] = await Promise.all([
           GetRedisInstalledVersions(),
           GetRedisActiveVersion(),
