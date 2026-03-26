@@ -39,7 +39,17 @@ func main() {
 			app.startup(ctx)
 			go initTray(ctx, app)
 		},
+		OnDomReady: func(ctx context.Context) {
+			s := config.LoadSettings()
+			if s.MinimizeToTray {
+				runtime.WindowHide(ctx)
+			}
+		},
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
+			if app.forceQuit {
+				systray.Quit()
+				return false
+			}
 			s := config.LoadSettings()
 			if s.MinimizeToTray {
 				runtime.WindowHide(ctx)
@@ -93,6 +103,7 @@ func initTray(ctx context.Context, app *App) {
 			if s.AutoStop {
 				app.StopAllServices()
 			}
+			app.forceQuit = true
 			systray.Quit()
 			runtime.Quit(ctx)
 		})

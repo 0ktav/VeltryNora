@@ -18,6 +18,7 @@ var (
 const (
 	errorAlreadyExists = 183
 	swRestore          = 9
+	swShow             = 5
 )
 
 // acquireSingleInstanceMutex tries to create a named mutex.
@@ -34,16 +35,19 @@ func acquireSingleInstanceMutex() (syscall.Handle, bool) {
 }
 
 // bringExistingWindowToFront finds the running instance window and focuses it.
+// Handles minimized, hidden (tray), and normal states.
 func bringExistingWindowToFront() {
 	title, _ := syscall.UTF16PtrFromString("VeltryNora")
 	hwnd, _, _ := findWindowW.Call(0, uintptr(unsafe.Pointer(title)))
 	if hwnd == 0 {
 		return
 	}
-	// Restore if minimized
 	minimized, _, _ := isIconic.Call(hwnd)
 	if minimized != 0 {
 		showWindow.Call(hwnd, swRestore)
+	} else {
+		// Also handles hidden windows (minimized to tray)
+		showWindow.Call(hwnd, swShow)
 	}
 	setForeground.Call(hwnd)
 }

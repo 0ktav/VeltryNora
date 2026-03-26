@@ -34,6 +34,10 @@ export function CheckGit() {
   return window['go']['main']['App']['CheckGit']();
 }
 
+export function CheckIndexFilesExist(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['CheckIndexFilesExist'](arg1, arg2, arg3, arg4);
+}
+
 export function CheckMySQLVersion() {
   return window['go']['main']['App']['CheckMySQLVersion']();
 }
@@ -184,6 +188,10 @@ export function GetDefaultBasePath() {
 
 export function GetHostsEntries() {
   return window['go']['main']['App']['GetHostsEntries']();
+}
+
+export function GetHostsPath() {
+  return window['go']['main']['App']['GetHostsPath']();
 }
 
 export function GetInstallLocation() {

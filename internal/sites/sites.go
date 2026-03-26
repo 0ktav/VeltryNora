@@ -468,6 +468,23 @@ func GetSiteByName(name string) (Site, error) {
 	return Site{}, fmt.Errorf("site not found")
 }
 
+// CheckIndexFilesExist returns a list of index files that already exist in the site root.
+func CheckIndexFilesExist(domain string, customRoot string, checkHTML bool, checkPHP bool) []string {
+	root := SiteRoot(domain, customRoot)
+	var existing []string
+	if checkHTML {
+		if _, err := os.Stat(filepath.Join(root, "index.html")); err == nil {
+			existing = append(existing, "index.html")
+		}
+	}
+	if checkPHP {
+		if _, err := os.Stat(filepath.Join(root, "index.php")); err == nil {
+			existing = append(existing, "index.php")
+		}
+	}
+	return existing
+}
+
 func CreateIndexFiles(domain string, customRoot string, createHTML bool, createPHP bool) bool {
 	root := SiteRoot(domain, customRoot)
 	if err := os.MkdirAll(root, 0755); err != nil {

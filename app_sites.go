@@ -26,6 +26,11 @@ func (a *App) CreateSite(domain string, root string, phpVersion string, addToHos
 	return "ok"
 }
 
+// CheckIndexFilesExist returns a list of index files that already exist in the site root.
+func (a *App) CheckIndexFilesExist(domain string, customRoot string, checkHtml bool, checkPhp bool) []string {
+	return sites.CheckIndexFilesExist(domain, customRoot, checkHtml, checkPhp)
+}
+
 // CreateIndexFiles creates index.html and/or index.php in the site root directory.
 func (a *App) CreateIndexFiles(domain string, customRoot string, createHtml bool, createPhp bool) bool {
 	return sites.CreateIndexFiles(domain, customRoot, createHtml, createPhp)

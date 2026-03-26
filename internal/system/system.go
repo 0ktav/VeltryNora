@@ -220,5 +220,11 @@ func IsPortInUse(port int) bool {
 	if err != nil {
 		return false
 	}
-	return strings.Contains(string(out), fmt.Sprintf(":%d ", port))
+	target := fmt.Sprintf(":%d ", port)
+	for _, line := range strings.Split(string(out), "\n") {
+		if strings.Contains(line, target) && strings.Contains(line, "LISTENING") {
+			return true
+		}
+	}
+	return false
 }

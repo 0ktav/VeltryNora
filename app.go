@@ -15,7 +15,8 @@ import (
 )
 
 type App struct {
-	ctx context.Context
+	ctx        context.Context
+	forceQuit  bool
 }
 
 type VersionResult struct {

@@ -15,25 +15,37 @@ const pageModules = {
 };
 
 let currentModule = null;
+let loadingPage = null;
 
 async function loadPage(page) {
-  if (currentModule && currentModule.destroy) {
-    currentModule.destroy();
-  }
+  if (loadingPage === page) return;
+  loadingPage = page;
 
-  const response = await fetch(`/src/pages/${page}.html`);
-  const html = await response.text();
-  document.getElementById("content").innerHTML = html;
-
-  translatePage();
-
-  const moduleLoader = pageModules[page];
-  if (moduleLoader) {
-    const module = await moduleLoader();
-    currentModule = module;
-    if (module.init) {
-      module.init();
+  try {
+    if (currentModule && currentModule.destroy) {
+      currentModule.destroy();
     }
+
+    const response = await fetch(`/src/pages/${page}.html`);
+    const html = await response.text();
+
+    // Abort if a different page was requested while we were fetching
+    if (loadingPage !== page) return;
+
+    document.getElementById("content").innerHTML = html;
+
+    translatePage();
+
+    const moduleLoader = pageModules[page];
+    if (moduleLoader) {
+      const module = await moduleLoader();
+      currentModule = module;
+      if (module.init) {
+        module.init();
+      }
+    }
+  } finally {
+    if (loadingPage === page) loadingPage = null;
   }
 }
 

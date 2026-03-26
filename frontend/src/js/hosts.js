@@ -1,5 +1,6 @@
 import {
   GetHostsEntries,
+  GetHostsPath,
   AddHostEntry,
   ToggleHostEntry,
   DeleteHostEntry,
@@ -49,7 +50,10 @@ async function renderEntries() {
   const list = document.getElementById("hosts-list");
   if (!list) return;
 
-  const entries = await GetHostsEntries();
+  const [entries, hostsPath] = await Promise.all([GetHostsEntries(), GetHostsPath()]);
+
+  const pathEl = document.getElementById("hosts-file-path");
+  if (pathEl && hostsPath) pathEl.textContent = hostsPath;
 
   if (entries.length === 0) {
     list.innerHTML = `<div style="color:var(--text3);font-size:11px">${t("hosts.no_entries")}</div>`;
@@ -92,7 +96,7 @@ function buildRow(entry) {
     `;
 
   return `
-    <div class="version-item-wrap">
+    <div class="version-item-wrap hosts-row" data-host="${escapeHtml(entry.host)}">
       <div class="version-item">
         <div class="version-row" style="gap:10px">
           ${checkbox}
@@ -117,6 +121,16 @@ function updateBatchBar() {
   if (!bar) return;
   bar.style.display = checked.length > 0 ? "flex" : "none";
   if (countEl) countEl.textContent = t("hosts.selected_count", { count: checked.length });
+
+  // Highlight selected rows
+  const checkedSet = new Set(checked);
+  document.querySelectorAll(".hosts-row").forEach((row) => {
+    const isSelected = checkedSet.has(row.dataset.host);
+    row.style.background = isSelected ? "rgba(99,179,237,0.15)" : "";
+    row.style.borderRadius = isSelected ? "6px" : "";
+    row.style.outline = isSelected ? "1px solid rgba(99,179,237,0.5)" : "";
+    row.style.transition = "background 0.15s, outline 0.15s";
+  });
 
   // Sync select-all checkbox
   const all = document.querySelectorAll(".hosts-cb");

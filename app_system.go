@@ -69,6 +69,10 @@ func (a *App) GetHostsEntries() []hosts.HostEntry {
 	return hosts.GetEntries()
 }
 
+func (a *App) GetHostsPath() string {
+	return hosts.GetHostsPath()
+}
+
 func (a *App) AddHostEntry(ip, host string) bool {
 	return hosts.AddEntry(ip, host) == nil
 }

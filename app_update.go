@@ -135,6 +135,7 @@ func (a *App) InstallUpdate() string {
 	if err := shellExecute(installer, params); err != nil {
 		return err.Error()
 	}
+	a.forceQuit = true
 	runtime.Quit(a.ctx)
 	return ""
 }

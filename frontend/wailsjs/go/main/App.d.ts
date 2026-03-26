@@ -23,6 +23,8 @@ export function CheckForUpdates():Promise<main.UpdateInfo>;
 
 export function CheckGit():Promise<string>;
 
+export function CheckIndexFilesExist(arg1:string,arg2:string,arg3:boolean,arg4:boolean):Promise<Array<string>>;
+
 export function CheckMySQLVersion():Promise<main.VersionResult>;
 
 export function CheckNginxVersion():Promise<main.VersionResult>;
@@ -98,6 +100,8 @@ export function GetBasePath():Promise<string>;
 export function GetDefaultBasePath():Promise<string>;
 
 export function GetHostsEntries():Promise<Array<hosts.HostEntry>>;
+
+export function GetHostsPath():Promise<string>;
 
 export function GetInstallLocation():Promise<string>;
 

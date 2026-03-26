@@ -1,5 +1,6 @@
 import {
   CreateSite,
+  CheckIndexFilesExist,
   CreateIndexFiles,
   DeleteSite,
   GetSites,
@@ -182,11 +183,12 @@ function renderFilteredSites() {
 }
 
 function buildSiteRow(site, phpRunning, nginxRunning) {
-  const nginxLabel = `<span class="site-meta" style="color:${nginxRunning ? "var(--good)" : "var(--danger)"}" title="${nginxRunning ? t("sites.nginx_running") : t("sites.nginx_stopped")}">nginx</span>`;
-  const phpLabel =
+  const nginxBadge = `<span class="site-badge" title="${nginxRunning ? t("sites.nginx_running") : t("sites.nginx_stopped")}"><span class="site-badge-dot" style="background:${nginxRunning ? "var(--good)" : "var(--danger)"}"></span>nginx</span>`;
+
+  const phpBadge =
     site.php && site.php !== "0"
-      ? `<span class="site-meta" style="color:${phpRunning ? "var(--good)" : "var(--danger)"}">PHP ${site.php}</span>`
-      : `<span class="site-meta" style="color:var(--text3)">static</span>`;
+      ? `<span class="site-badge"><span class="site-badge-dot" style="background:${phpRunning ? "var(--good)" : "var(--danger)"}"></span>PHP ${site.php}</span>`
+      : `<span class="site-badge" style="color:var(--text3)">static</span>`;
 
   const statusDot = site.active
     ? '<span class="dot-pulse"></span>'
@@ -194,36 +196,40 @@ function buildSiteRow(site, phpRunning, nginxRunning) {
 
   return `
     <div class="version-item-wrap" data-name="${site.name}">
-      <div class="version-item">
-        <div class="version-row" style="flex-direction:column;align-items:flex-start;gap:3px">
-          <div style="display:flex;align-items:center;gap:8px">
+      <div class="version-item site-item">
+
+        <div class="site-info">
+          <div class="site-info-main">
+            ${statusDot}
             <span class="version-badge" style="color:var(--accent);border-color:rgba(0,212,170,0.25)">${escapeHtml(site.domain)}</span>
-            ${nginxLabel}
-            ${phpLabel}
+            ${nginxBadge}
+            ${phpBadge}
           </div>
           <span class="site-path" title="${escapeHtml(site.root)}">${escapeHtml(shortPath(site.root))}</span>
         </div>
+
         <div class="version-actions">
-          ${statusDot}
-          <button class="btn btn-secondary btn-icon" data-action="open-site" data-domain="${escapeHtml(site.domain)}">
+          <button class="btn btn-secondary btn-icon" data-action="open-site" data-domain="${escapeHtml(site.domain)}" title="${escapeHtml(site.domain)}">
             <i data-lucide="globe"></i>
           </button>
-          <button class="btn btn-secondary btn-icon" data-action="open-root" data-root="${escapeHtml(site.root)}">
+          <button class="btn btn-secondary btn-icon" data-action="open-root" data-root="${escapeHtml(site.root)}" title="${escapeHtml(site.root)}">
             <i data-lucide="folder"></i>
           </button>
+          <span class="site-actions-sep"></span>
           <button class="btn btn-secondary btn-icon" data-action="change-php" data-name="${site.name}" title="${t("sites.change_php")}">
             <i data-lucide="cpu"></i>
           </button>
           <button class="btn btn-secondary btn-icon" data-action="change-root" data-name="${site.name}" title="${t("sites.change_root")}">
             <i data-lucide="folder-symlink"></i>
           </button>
-          ${site.laravel_version ? `<button class="btn btn-secondary btn-icon" data-action="laravel" data-name="${site.name}" title="${t("sites.laravel_panel")}" style="color:var(--accent3)"><i data-lucide="flame"></i></button>` : ""}
           <button class="btn btn-secondary btn-icon" data-action="rewrites" data-name="${site.name}" title="${t("sites.rewrites")}">
             <i data-lucide="route"></i>
           </button>
           <button class="btn btn-secondary btn-icon" data-action="log" data-name="${site.name}" title="${t("nav.logs")}">
             <i data-lucide="scroll-text"></i>
           </button>
+          ${site.laravel_version ? `<button class="btn btn-secondary btn-icon" data-action="laravel" data-name="${site.name}" title="${t("sites.laravel_panel")}" style="color:var(--accent3)"><i data-lucide="flame"></i></button>` : ""}
+          <span class="site-actions-sep"></span>
           <button class="btn ${site.active ? "btn-warning" : "btn-secondary"} btn-icon" data-action="toggle" data-name="${site.name}">
             <i data-lucide="${site.active ? "pause" : "play"}"></i>
           </button>
@@ -231,6 +237,7 @@ function buildSiteRow(site, phpRunning, nginxRunning) {
             <i data-lucide="trash-2"></i>
           </button>
         </div>
+
       </div>
       <div class="php-config-panel" id="site-php-${site.name}" style="display:none"></div>
       <div class="php-config-panel" id="site-root-${site.name}" style="display:none"></div>
@@ -505,6 +512,19 @@ async function onCreateSite(modal, close) {
   }
 
   const btn = modal.querySelector("#modal-site-create");
+
+  if (createHtml || createPhp) {
+    const existing = await CheckIndexFilesExist(domain, root, createHtml, createPhp);
+    if (existing && existing.length > 0) {
+      const proceed = await confirm(
+        t("sites.index_files_exist_title"),
+        t("sites.index_files_exist_confirm", { files: existing.join(", ") }),
+        "warn"
+      );
+      if (!proceed) return;
+    }
+  }
+
   btn.disabled = true;
   btn.textContent = t("sites.creating");
 

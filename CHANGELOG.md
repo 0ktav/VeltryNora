@@ -1,3 +1,19 @@
+## v1.4.0 — 2026-03-26
+
+### Added
+- **Hosts: row highlight + path display** — selected rows are highlighted and the hosts file path is shown in the header
+- **Sites: overwrite confirmation** — confirms before overwriting an existing index file when creating a new site
+
+### Changed
+- **Sites: card layout redesign** — action buttons are now grouped for a cleaner, more consistent layout
+
+### Fixed
+- **PHP: stop only LISTENING processes** — stopping a PHP version no longer kills unrelated processes, preventing accidental nginx shutdown
+- **Updater: multiple downloads prevented** — downloading an update multiple times in the same session no longer triggers duplicate setups
+- **Tray: minimize-to-tray on startup** — minimize-to-tray and quit from tray now behave correctly on startup and throughout the session
+
+---
+
 ## v1.3.0 — 2026-03-25
 
 ### Added

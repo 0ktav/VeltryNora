@@ -600,13 +600,17 @@ func Stop(version string) error {
 		return nil
 	}
 
-	lines := strings.Split(string(out), "\n")
-	for _, line := range lines {
-		if strings.Contains(line, fmt.Sprintf(":%d ", port)) {
+	target := fmt.Sprintf(":%d ", port)
+	seen := map[string]bool{}
+	for _, line := range strings.Split(string(out), "\n") {
+		if strings.Contains(line, target) && strings.Contains(line, "LISTENING") {
 			fields := strings.Fields(strings.TrimSpace(line))
 			if len(fields) >= 5 {
 				pid := strings.TrimSpace(fields[4])
-				winexec.Command("taskkill", "/F", "/PID", pid).Run()
+				if pid != "0" && !seen[pid] {
+					seen[pid] = true
+					winexec.Command("taskkill", "/F", "/PID", pid).Run()
+				}
 			}
 		}
 	}

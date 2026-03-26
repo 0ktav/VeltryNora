@@ -21,7 +21,8 @@ export async function init() {
     repoBtn.addEventListener("click", () => OpenURL(repoURL));
   }
 
-  document.getElementById("about-check-updates-btn")?.addEventListener("click", checkUpdates);
+  const checkBtn = document.getElementById("about-check-updates-btn");
+  if (checkBtn) checkBtn.onclick = checkUpdates;
 
   // If update was already detected on startup, show it immediately; otherwise auto-check
   const pending = getPendingUpdate();
@@ -86,7 +87,7 @@ function showUpdateAvailable(result) {
 
   if (actions) actions.style.display = "block";
 
-  downloadBtn?.addEventListener("click", async () => {
+  if (downloadBtn) downloadBtn.onclick = async () => {
     downloadBtn.disabled = true;
     downloadBtn.innerHTML = `<span class="spinner"></span> ${t("common.loading")}`;
 
@@ -127,7 +128,7 @@ function showUpdateAvailable(result) {
         const installBtn = document.getElementById("about-install-btn");
         if (installBtn) {
           installBtn.style.display = "inline-flex";
-          installBtn.addEventListener("click", async () => {
+          installBtn.onclick = async () => {
             installBtn.disabled = true;
             installBtn.innerHTML = `<span class="spinner"></span>`;
             await installUpdate((err) => {
@@ -135,7 +136,7 @@ function showUpdateAvailable(result) {
               installBtn.textContent = t("about.install_restart");
               if (status) { status.style.color = "var(--danger)"; status.textContent = err; }
             });
-          });
+          };
         }
         hideUpdateBadge();
         if (status) { status.style.color = "var(--good)"; status.textContent = t("about.ready_to_install"); }
@@ -147,5 +148,5 @@ function showUpdateAvailable(result) {
         if (status) { status.style.color = "var(--danger)"; status.textContent = err; }
       },
     });
-  });
+  };
 }
