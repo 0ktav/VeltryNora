@@ -25,9 +25,10 @@ import {
   GetMySQLUserGrants,
   GrantMySQLDatabase,
   RevokeMySQLDatabase,
+  GetSettings,
 } from "../../wailsjs/go/main/App";
 import { alert, confirm, promptPassword } from "./modal.js";
-import { addListener, pollUntilStopped } from "./utils.js";
+import { addListener, pollUntilStopped, pollUntilStarted, initTabs } from "./utils.js";
 import { openInstallModal } from "./installer.js";
 import { t } from "./i18n.js";
 import { createIcons, icons } from "lucide";
@@ -586,6 +587,7 @@ export function init() {
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner"></span> ${t("common.starting")}`;
     await StartMySQL();
+    await pollUntilStarted(IsMySQLRunning, 30000);
     await updateMySQLStatus();
   });
 
@@ -603,7 +605,12 @@ export function init() {
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner"></span> ${t("common.restarting")}`;
     await RestartMySQL();
+    await pollUntilStarted(IsMySQLRunning, 30000);
     await updateMySQLStatus();
+  });
+
+  GetSettings().then((s) => {
+    if (s.tabs_layout) initTabs("mysql-tabs-container", "control");
   });
 
   loadMySQLPage();

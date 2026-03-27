@@ -1,32 +1,69 @@
 import { EventsOn } from "../../wailsjs/runtime";
+import { CancelDownload } from "../../wailsjs/go/main/App.js";
 
 // Map<downloadId, { elEntry, elBar, elPct, elSize }>
 const active = new Map();
+let totalStarted = 0;
 let nextId = 0;
+let collapsed = false;
 
-let container = null;
+let card = null;
+let cardTitle = null;
+let cardBody = null;
 
 export function initDownloader() {
-  container = document.getElementById("sidebar-downloads");
+  card = document.getElementById("dl-float-card");
+  cardTitle = document.getElementById("dl-float-title");
+  cardBody = document.getElementById("dl-float-body");
+
+  const toggle = document.getElementById("dl-float-toggle");
+  toggle?.addEventListener("click", () => {
+    collapsed = !collapsed;
+    cardBody.style.display = collapsed ? "none" : "";
+    toggle.textContent = collapsed ? "+" : "−";
+  });
+}
+
+function updateHeader() {
+  if (!cardTitle) return;
+  cardTitle.textContent = `↓ Downloading ${active.size} / ${totalStarted}`;
+}
+
+function hideCardIfDone() {
+  if (active.size === 0) {
+    setTimeout(() => {
+      if (active.size === 0 && card) {
+        card.style.display = "none";
+        totalStarted = 0;
+        collapsed = false;
+        if (cardBody) cardBody.style.display = "";
+        const toggle = document.getElementById("dl-float-toggle");
+        if (toggle) toggle.textContent = "−";
+      }
+    }, 1500);
+  }
 }
 
 /**
- * Register a new active download and show it in the sidebar.
+ * Register a new active download and show it in the floating card.
  * @param {string} eventName - Wails event name (e.g. "nginx:download-progress")
- * @param {string} label     - Human label shown in the sidebar (e.g. "Nginx 1.27.4")
+ * @param {string} label     - Human label shown in the card (e.g. "Nginx 1.27.4")
  * @returns {string} downloadId - unique ID to pass to finishDownload / errorDownload
  */
 export function startDownload(eventName, label) {
-  if (!container) return "";
+  if (!card) return "";
 
   const downloadId = `${eventName}|${nextId++}`;
+  totalStarted++;
+
+  card.style.display = "block";
 
   const entry = document.createElement("div");
   entry.className = "dl-entry";
   entry.innerHTML = `
     <div class="dl-header">
-      <span class="dl-icon">↓</span>
       <span class="dl-name">${label}</span>
+      <button class="dl-cancel-btn" title="Cancel">✕</button>
     </div>
     <div class="progress-wrap dl-bar-wrap">
       <div class="progress-bar dl-bar" style="width:0%"></div>
@@ -37,8 +74,13 @@ export function startDownload(eventName, label) {
     </div>
   `;
 
-  container.appendChild(entry);
-  container.style.display = "flex";
+  const cancelBtn = entry.querySelector(".dl-cancel-btn");
+  cancelBtn.addEventListener("click", () => {
+    cancelBtn.disabled = true;
+    CancelDownload(eventName);
+  });
+
+  cardBody.appendChild(entry);
 
   const dl = {
     elEntry: entry,
@@ -48,6 +90,7 @@ export function startDownload(eventName, label) {
   };
 
   active.set(downloadId, dl);
+  updateHeader();
 
   EventsOn(eventName, ({ percent, totalMB }) => {
     const d = active.get(downloadId);
@@ -73,7 +116,7 @@ export function startDownload(eventName, label) {
 }
 
 /**
- * Mark a download as finished successfully and remove its entry from the sidebar.
+ * Mark a download as finished successfully and remove its entry from the card.
  * @param {string} downloadId - ID returned by startDownload
  */
 export function finishDownload(downloadId) {
@@ -89,14 +132,13 @@ export function finishDownload(downloadId) {
   setTimeout(() => {
     dl.elEntry.remove();
     active.delete(downloadId);
-    if (active.size === 0 && container) {
-      container.style.display = "none";
-    }
+    updateHeader();
+    hideCardIfDone();
   }, 1500);
 }
 
 /**
- * Mark a download as failed, show error in the sidebar entry, then remove it.
+ * Mark a download as failed, show error in the card entry, then remove it.
  * @param {string} downloadId - ID returned by startDownload
  * @param {string} message
  */
@@ -114,8 +156,7 @@ export function errorDownload(downloadId, message) {
   setTimeout(() => {
     dl.elEntry.remove();
     active.delete(downloadId);
-    if (active.size === 0 && container) {
-      container.style.display = "none";
-    }
+    updateHeader();
+    hideCardIfDone();
   }, 4000);
 }

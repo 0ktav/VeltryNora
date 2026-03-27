@@ -8,8 +8,14 @@
         <div class="dot" style="background: var(--php)"></div>
         <span data-i18n="common.installed_versions">Installed versions</span>
       </div>
-      <div class="panel-action" id="php-add-btn" data-i18n="common.add_new">
-        + Install new version
+      <div style="display:flex;align-items:center;gap:8px">
+        <div id="php-bulk-actions" style="display:none;gap:6px;align-items:center">
+          <button class="btn btn-secondary" id="php-start-all-btn" data-i18n="php.start_all">Start All</button>
+          <button class="btn btn-warning" id="php-stop-all-btn" data-i18n="php.stop_all">Stop All</button>
+        </div>
+        <div class="panel-action" id="php-add-btn" data-i18n="common.add_new">
+          + Install new version
+        </div>
       </div>
     </div>
     <div class="panel-body">

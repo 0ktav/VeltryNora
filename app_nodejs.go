@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"nginxpanel/internal/applog"
 	"nginxpanel/internal/nodejs"
 
@@ -12,9 +13,17 @@ func (a *App) CheckNodeJS() string {
 }
 
 func (a *App) DownloadNodeJS(addToPath bool) bool {
+	const key = "nodejs:download-progress"
+	ctx, cancel := context.WithCancel(a.ctx)
+	a.registerDownload(key, cancel)
+	defer func() {
+		cancel()
+		a.unregisterDownload(key)
+	}()
+
 	applog.Info("Node.js download started")
-	err := nodejs.Download(addToPath, func(percent int, totalMB float64) {
-		runtime.EventsEmit(a.ctx, "nodejs:download-progress", map[string]interface{}{"percent": percent, "totalMB": totalMB})
+	err := nodejs.Download(ctx, addToPath, func(percent int, totalMB float64) {
+		runtime.EventsEmit(a.ctx, key, map[string]interface{}{"percent": percent, "totalMB": totalMB})
 	})
 	if err != nil {
 		applog.Errorf("Node.js download failed: %s", err.Error())

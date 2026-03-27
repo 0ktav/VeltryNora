@@ -8,11 +8,15 @@ import (
 )
 
 type VersionCache struct {
-	Nginx     string    `json:"nginx"`
-	PHP       string    `json:"php"`
-	Redis     string    `json:"redis"`
-	MySQL     string    `json:"mysql"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Nginx          string    `json:"nginx"`
+	PHP            string    `json:"php"`
+	Redis          string    `json:"redis"`
+	MySQL          string    `json:"mysql"`
+	NginxUpdatedAt time.Time `json:"nginx_updated_at,omitempty"`
+	PHPUpdatedAt   time.Time `json:"php_updated_at,omitempty"`
+	RedisUpdatedAt time.Time `json:"redis_updated_at,omitempty"`
+	MySQLUpdatedAt time.Time `json:"mysql_updated_at,omitempty"`
+	UpdatedAt      time.Time `json:"updated_at"` // legacy global timestamp, kept for backwards compat
 }
 
 func getCachePath() string {
@@ -48,4 +52,10 @@ func Save(cache VersionCache) error {
 
 func IsExpired(cache VersionCache) bool {
 	return time.Since(cache.UpdatedAt) > time.Duration(config.CacheExpireHours)*time.Hour
+}
+
+// IsServiceExpired checks expiry for a single service using its own timestamp.
+// Zero value means never cached → treat as expired.
+func IsServiceExpired(updatedAt time.Time) bool {
+	return updatedAt.IsZero() || time.Since(updatedAt) > time.Duration(config.CacheExpireHours)*time.Hour
 }

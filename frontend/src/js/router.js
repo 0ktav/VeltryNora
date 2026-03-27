@@ -49,8 +49,19 @@ async function loadPage(page) {
   }
 }
 
+const SETTINGS_VISITED_KEY = "veltrynora-seen-settings-new";
+
+function initSettingsBadge() {
+  const badge = document.getElementById("settings-new-badge");
+  if (!badge) return;
+  if (!localStorage.getItem(SETTINGS_VISITED_KEY)) {
+    badge.style.display = "";
+  }
+}
+
 export function initRouter() {
   loadPage("dashboard");
+  initSettingsBadge();
 
   document.querySelectorAll(".nav-item").forEach((item) => {
     item.addEventListener("click", () => {
@@ -60,6 +71,12 @@ export function initRouter() {
         .querySelectorAll(".nav-item")
         .forEach((i) => i.classList.remove("active"));
       item.classList.add("active");
+
+      if (page === "settings") {
+        const badge = document.getElementById("settings-new-badge");
+        if (badge) badge.style.display = "none";
+        localStorage.setItem(SETTINGS_VISITED_KEY, "1");
+      }
 
       loadPage(page);
     });

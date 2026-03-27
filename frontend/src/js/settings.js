@@ -114,6 +114,19 @@ export async function init() {
   const notifyFailCb = document.getElementById("notify-fail-checkbox");
   if (notifyFailCb) notifyFailCb.checked = s.notify_operation_fail;
 
+  // Tabs layout
+  const tabsLayoutCb = document.getElementById("tabs-layout-checkbox");
+  if (tabsLayoutCb) tabsLayoutCb.checked = s.tabs_layout;
+  const interfaceBadge = document.getElementById("settings-interface-badge");
+  if (interfaceBadge && !localStorage.getItem("veltrynora-seen-tabs-layout")) {
+    interfaceBadge.style.display = "";
+  }
+  tabsLayoutCb?.addEventListener("change", () => {
+    if (interfaceBadge) interfaceBadge.style.display = "none";
+    localStorage.setItem("veltrynora-seen-tabs-layout", "1");
+    debouncedPersist();
+  });
+
   // Show app log
   const showLogCb = document.getElementById("show-app-log-checkbox");
   if (showLogCb) {
@@ -253,6 +266,8 @@ async function persistSettings() {
       document.getElementById("notify-crash-checkbox")?.checked || false,
     notify_operation_fail:
       document.getElementById("notify-fail-checkbox")?.checked || false,
+    tabs_layout:
+      document.getElementById("tabs-layout-checkbox")?.checked || false,
     theme,
     language: getLang(),
   });

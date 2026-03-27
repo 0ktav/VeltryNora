@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"nginxpanel/internal/cache"
 	"nginxpanel/internal/config"
 	"nginxpanel/internal/mysql"
 	"nginxpanel/internal/notify"
+	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -34,6 +36,8 @@ func (a *App) CheckMySQLVersion() VersionResult {
 		},
 		func(c cache.VersionCache) string { return c.MySQL },
 		func(c *cache.VersionCache, v string) { c.MySQL = v },
+		func(c cache.VersionCache) time.Time { return c.MySQLUpdatedAt },
+		func(c *cache.VersionCache, t time.Time) { c.MySQLUpdatedAt = t },
 	)
 }
 
@@ -59,8 +63,16 @@ func (a *App) IsMySQLRunning() bool {
 }
 
 func (a *App) InstallMySQL(version string) string {
-	err := mysql.Install(version, func(percent int, totalMB float64) {
-		runtime.EventsEmit(a.ctx, "mysql:install-progress:"+version, map[string]interface{}{"percent": percent, "totalMB": totalMB})
+	key := "mysql:install-progress:" + version
+	ctx, cancel := context.WithCancel(a.ctx)
+	a.registerDownload(key, cancel)
+	defer func() {
+		cancel()
+		a.unregisterDownload(key)
+	}()
+
+	err := mysql.Install(ctx, version, func(percent int, totalMB float64) {
+		runtime.EventsEmit(a.ctx, key, map[string]interface{}{"percent": percent, "totalMB": totalMB})
 	})
 	if err != nil {
 		return err.Error()

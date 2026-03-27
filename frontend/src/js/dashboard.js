@@ -1,7 +1,5 @@
 import {
-  CheckNginxVersion,
-  CheckPHPVersion,
-  CheckRedisVersion,
+  GetDashboardVersions,
   GetServicesStatus,
   GetSystemStats,
   IsOnline,
@@ -11,6 +9,15 @@ import {
 import { t } from "./i18n.js";
 
 let statsInterval, servicesInterval, onlineInterval, conflictsInterval;
+
+function timeAgo(isoString) {
+  if (!isoString) return "";
+  const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+  if (diff < 60) return t("dash.just_now");
+  if (diff < 3600) return Math.floor(diff / 60) + "min ago";
+  if (diff < 86400) return Math.floor(diff / 3600) + "h ago";
+  return Math.floor(diff / 86400) + "d ago";
+}
 
 function updateStats() {
   GetSystemStats().then((s) => {
@@ -24,8 +31,9 @@ function updateStats() {
     document.getElementById("ram-gauge").style.width = s.ram_percent + "%";
 
     document.getElementById("disk-val").textContent = s.disk_percent + "%";
+    const driveLabel = s.disk_drive ? s.disk_drive + " · " : "";
     document.getElementById("disk-sub").textContent =
-      s.disk_used + " GB " + t("dash.of") + " " + s.disk_total + " GB";
+      driveLabel + s.disk_used + " GB " + t("dash.of") + " " + s.disk_total + " GB";
     document.getElementById("disk-gauge").style.width = s.disk_percent + "%";
 
     document.getElementById("uptime-val").textContent = s.uptime;
@@ -74,12 +82,15 @@ function updateServices() {
         ? '<span class="tag tag-active">RUNNING</span>'
         : '<span class="tag tag-inactive">STOPPED</span>';
 
+      const versionBadge = s.version
+        ? `<span class="version-badge" style="font-size:10px;color:${icon.color};border-color:${icon.color}33">v${s.version}</span>`
+        : "";
       list.innerHTML += `
                 <div class="service-item">
                     <div class="service-icon" style="background:${icon.bg};color:${icon.color}">${icon.letter}</div>
                     <div class="service-info">
                         <div class="service-name">${s.name}</div>
-                        <div class="service-detail">${s.running ? t("dash.active") : t("dash.stopped")}</div>
+                        <div class="service-detail" style="display:flex;align-items:center;gap:5px">${versionBadge}${s.running ? t("dash.active") : t("dash.stopped")}</div>
                     </div>
                     <div class="service-status">${tag}</div>
                 </div>
@@ -170,28 +181,20 @@ function updateOnlineStatus() {
 }
 
 export function init() {
-  CheckNginxVersion().then((r) => {
+  const renderVersion = (elId, r) => {
+    const el = document.getElementById(elId);
+    if (!el) return;
     const icon = r.from_cache ? "⟳" : "✓";
-    const color = r.from_cache ? "var(--text3)" : "var(--good)";
-    const el = document.getElementById("latest-nginx");
-    if (el)
-      el.innerHTML = `latest: ${r.version} <span style="color:${color}">${icon}</span>`;
-  });
+    const iconColor = r.from_cache ? "var(--text3)" : "var(--good)";
+    const ago = timeAgo(r.cached_at);
+    const agoHtml = ago ? ` <span style="color:var(--text3);font-size:10px">${ago}</span>` : "";
+    el.innerHTML = `latest: ${r.version} <span style="color:${iconColor}">${icon}</span>${agoHtml}`;
+  };
 
-  CheckPHPVersion().then((r) => {
-    const icon = r.from_cache ? "⟳" : "✓";
-    const color = r.from_cache ? "var(--text3)" : "var(--good)";
-    const el = document.getElementById("latest-php");
-    if (el)
-      el.innerHTML = `latest: ${r.version} <span style="color:${color}">${icon}</span>`;
-  });
-
-  CheckRedisVersion().then((r) => {
-    const icon = r.from_cache ? "⟳" : "✓";
-    const color = r.from_cache ? "var(--text3)" : "var(--good)";
-    const el = document.getElementById("latest-redis");
-    if (el)
-      el.innerHTML = `latest: ${r.version} <span style="color:${color}">${icon}</span>`;
+  GetDashboardVersions().then((v) => {
+    renderVersion("latest-nginx", v.nginx);
+    renderVersion("latest-php", v.php);
+    renderVersion("latest-redis", v.redis);
   });
 
   const infoBtn = document.getElementById("versions-info-btn");
@@ -211,7 +214,7 @@ export function init() {
   updateOnlineStatus();
   updatePortConflicts();
 
-  statsInterval = setInterval(updateStats, 3000);
+  statsInterval = setInterval(updateStats, 5000);
   servicesInterval = setInterval(updateServices, 5000);
   onlineInterval = setInterval(updateOnlineStatus, 10000);
   conflictsInterval = setInterval(updatePortConflicts, 10000);

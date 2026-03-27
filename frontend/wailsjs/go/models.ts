@@ -14,6 +14,7 @@ export namespace config {
 	    preferred_browser: string;
 	    notify_service_crash: boolean;
 	    notify_operation_fail: boolean;
+	    tabs_layout: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new AppSettings(source);
@@ -34,6 +35,7 @@ export namespace config {
 	        this.preferred_browser = source["preferred_browser"];
 	        this.notify_service_crash = source["notify_service_crash"];
 	        this.notify_operation_fail = source["notify_operation_fail"];
+	        this.tabs_layout = source["tabs_layout"];
 	    }
 	}
 
@@ -81,6 +83,75 @@ export namespace main {
 	        this.author = source["author"];
 	        this.repository = source["repository"];
 	    }
+	}
+	export class VersionResult {
+	    version: string;
+	    from_cache: boolean;
+	    // Go type: time
+	    cached_at: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new VersionResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.version = source["version"];
+	        this.from_cache = source["from_cache"];
+	        this.cached_at = this.convertValues(source["cached_at"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class DashboardVersions {
+	    nginx: VersionResult;
+	    php: VersionResult;
+	    redis: VersionResult;
+	
+	    static createFrom(source: any = {}) {
+	        return new DashboardVersions(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.nginx = this.convertValues(source["nginx"], VersionResult);
+	        this.php = this.convertValues(source["php"], VersionResult);
+	        this.redis = this.convertValues(source["redis"], VersionResult);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class MySQLConnectionInfo {
 	    host: string;
@@ -156,20 +227,6 @@ export namespace main {
 	        this.error = source["error"];
 	    }
 	}
-	export class VersionResult {
-	    version: string;
-	    from_cache: boolean;
-	
-	    static createFrom(source: any = {}) {
-	        return new VersionResult(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.version = source["version"];
-	        this.from_cache = source["from_cache"];
-	    }
-	}
 
 }
 
@@ -180,7 +237,11 @@ export namespace php {
 	    post_max_size: string;
 	    upload_max_filesize: string;
 	    max_execution_time: string;
+	    max_input_time: string;
 	    display_errors: boolean;
+	    html_errors: boolean;
+	    log_errors: boolean;
+	    short_open_tag: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new PHPConfig(source);
@@ -192,7 +253,11 @@ export namespace php {
 	        this.post_max_size = source["post_max_size"];
 	        this.upload_max_filesize = source["upload_max_filesize"];
 	        this.max_execution_time = source["max_execution_time"];
+	        this.max_input_time = source["max_input_time"];
 	        this.display_errors = source["display_errors"];
+	        this.html_errors = source["html_errors"];
+	        this.log_errors = source["log_errors"];
+	        this.short_open_tag = source["short_open_tag"];
 	    }
 	}
 	export class PHPExtension {
@@ -301,6 +366,7 @@ export namespace system {
 	    disk_used: number;
 	    disk_total: number;
 	    disk_percent: number;
+	    disk_drive: string;
 	    uptime: string;
 	
 	    static createFrom(source: any = {}) {
@@ -316,6 +382,7 @@ export namespace system {
 	        this.disk_used = source["disk_used"];
 	        this.disk_total = source["disk_total"];
 	        this.disk_percent = source["disk_percent"];
+	        this.disk_drive = source["disk_drive"];
 	        this.uptime = source["uptime"];
 	    }
 	}

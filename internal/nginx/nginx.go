@@ -2,6 +2,7 @@ package nginx
 
 import (
 	"bytes"
+	"context"
 	_ "embed"
 	"encoding/json"
 	"fmt"
@@ -120,18 +121,29 @@ func IsRunning() bool {
 	return system.IsProcessRunning("nginx.exe")
 }
 
-func Download(version string, onProgress func(percent int, totalMB float64)) error {
+func Download(ctx context.Context, version string, onProgress func(percent int, totalMB float64)) error {
 	url := fmt.Sprintf("%s/nginx-%s.zip", config.NginxDownloadURL, version)
 	basePath := system.GetBasePath()
 	zipPath := filepath.Join(basePath, config.DownloadsFolder, "nginx-"+version+".zip")
 	destDir := filepath.Join(basePath, config.NginxFolder, version)
 
-	err := utils.Download(url, zipPath, 0, onProgress)
-	if err != nil {
+	var success bool
+	defer func() {
+		if !success {
+			os.Remove(zipPath)
+			os.RemoveAll(destDir)
+		}
+	}()
+
+	if err := utils.Download(ctx, url, zipPath, 0, onProgress); err != nil {
+		return err
+	}
+	if err := utils.Unzip(zipPath, destDir, "nginx-"+version); err != nil {
 		return err
 	}
 
-	return utils.Unzip(zipPath, destDir, "nginx-"+version)
+	success = true
+	return nil
 }
 
 func DeleteVersion(version string) error {

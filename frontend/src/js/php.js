@@ -23,8 +23,8 @@ import { runInstall, openInstallModal } from "./installer.js";
 import { t } from "./i18n.js";
 import { createIcons, icons } from "lucide";
 
-let isStartingPHP = false;
-let isStoppingPHP = false;
+const startingVersions = new Set();
+const stoppingVersions = new Set();
 let isDeletingPHP = false;
 const installingVersions = new Set();
 
@@ -47,6 +47,8 @@ async function loadPHPPage() {
   }
 
   addListener("php-install-btn", onInstall);
+  addListener("php-start-all-btn", startAllPHP);
+  addListener("php-stop-all-btn", stopAllPHP);
 
   document
     .getElementById("php-archived-toggle")
@@ -125,9 +127,52 @@ async function loadAvailableVersions(selectId, archived = false) {
     .join("");
 }
 
+async function startAllPHP() {
+  const startBtn = document.getElementById("php-start-all-btn");
+  const stopBtn = document.getElementById("php-stop-all-btn");
+  if (startBtn) startBtn.disabled = true;
+  if (stopBtn) stopBtn.disabled = true;
+
+  const installed = await GetPHPInstalledVersions();
+  await Promise.all(installed.map(async (v) => {
+    if (await IsPHPRunning(v)) return;
+    const cardBtn = document.querySelector(`[data-version="${v}"] [data-action="start"]`);
+    if (cardBtn) { cardBtn.disabled = true; cardBtn.innerHTML = `<span class="spinner"></span>`; }
+    await StartPHP(v);
+    await pollUntilStarted(() => IsPHPRunning(v));
+    updateVersionCard(v, true);
+  }));
+
+  if (startBtn) startBtn.disabled = false;
+  if (stopBtn) stopBtn.disabled = false;
+}
+
+async function stopAllPHP() {
+  const startBtn = document.getElementById("php-start-all-btn");
+  const stopBtn = document.getElementById("php-stop-all-btn");
+  if (startBtn) startBtn.disabled = true;
+  if (stopBtn) stopBtn.disabled = true;
+
+  const installed = await GetPHPInstalledVersions();
+  await Promise.all(installed.map(async (v) => {
+    if (!await IsPHPRunning(v)) return;
+    const cardBtn = document.querySelector(`[data-version="${v}"] [data-action="stop"]`);
+    if (cardBtn) { cardBtn.disabled = true; cardBtn.innerHTML = `<span class="spinner"></span>`; }
+    await StopPHP(v);
+    await pollUntilStopped(() => IsPHPRunning(v));
+    updateVersionCard(v, false);
+  }));
+
+  if (startBtn) startBtn.disabled = false;
+  if (stopBtn) stopBtn.disabled = false;
+}
+
 async function renderInstalledVersions(installed) {
   const list = document.getElementById("php-versions-list");
   list.innerHTML = "";
+
+  const bulkActions = document.getElementById("php-bulk-actions");
+  if (bulkActions) bulkActions.style.display = installed.length > 1 ? "flex" : "none";
 
   const sorted = [...installed].sort((a, b) =>
     b.localeCompare(a, undefined, { numeric: true }),
@@ -175,6 +220,50 @@ async function renderInstalledVersions(installed) {
   setTimeout(() => createIcons({ icons }), 0);
 }
 
+function updateVersionCard(version, running) {
+  const wrap = document.querySelector(`[data-version="${version}"]`);
+  if (!wrap) return;
+
+  const actionsDiv = wrap.querySelector(".version-actions");
+  if (!actionsDiv) return;
+
+  const dot = actionsDiv.querySelector(".dot-pulse, .dot-inactive");
+  if (dot) {
+    dot.className = running ? "dot-pulse" : "dot-inactive";
+  }
+
+  const startStopBtn = actionsDiv.querySelector('[data-action="start"], [data-action="stop"]');
+  if (startStopBtn) {
+    startStopBtn.disabled = false;
+    if (running) {
+      startStopBtn.dataset.action = "stop";
+      startStopBtn.className = "btn btn-warning btn-icon";
+      startStopBtn.title = t("common.stopping");
+      startStopBtn.innerHTML = `<i data-lucide="square"></i>`;
+    } else {
+      startStopBtn.dataset.action = "start";
+      startStopBtn.className = "btn btn-secondary btn-icon";
+      startStopBtn.title = t("common.starting");
+      startStopBtn.innerHTML = `<i data-lucide="play"></i>`;
+    }
+  }
+
+  let deleteBtn = actionsDiv.querySelector('[data-action="delete"]');
+  if (running && deleteBtn) {
+    deleteBtn.remove();
+  } else if (!running && !deleteBtn) {
+    const newDeleteBtn = document.createElement("button");
+    newDeleteBtn.className = "btn btn-danger btn-icon";
+    newDeleteBtn.dataset.action = "delete";
+    newDeleteBtn.dataset.version = version;
+    newDeleteBtn.title = t("common.delete");
+    newDeleteBtn.innerHTML = `<i data-lucide="trash-2"></i>`;
+    actionsDiv.appendChild(newDeleteBtn);
+  }
+
+  setTimeout(() => createIcons({ icons }), 0);
+}
+
 function versionToPort(version) {
   const parts = version.split(".");
   if (parts.length >= 2) {
@@ -199,32 +288,30 @@ async function onInstall() {
 }
 
 async function startPHP(btn, version) {
-  if (isStartingPHP) return;
-  isStartingPHP = true;
+  if (startingVersions.has(version)) return;
+  startingVersions.add(version);
   try {
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner"></span>`;
     await StartPHP(version);
     await pollUntilStarted(() => IsPHPRunning(version));
-    const installed = await GetPHPInstalledVersions();
-    await renderInstalledVersions(installed);
+    updateVersionCard(version, true);
   } finally {
-    isStartingPHP = false;
+    startingVersions.delete(version);
   }
 }
 
 async function stopPHP(btn, version) {
-  if (isStoppingPHP) return;
-  isStoppingPHP = true;
+  if (stoppingVersions.has(version)) return;
+  stoppingVersions.add(version);
   try {
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner"></span>`;
     await StopPHP(version);
     await pollUntilStopped(() => IsPHPRunning(version));
-    const installed = await GetPHPInstalledVersions();
-    await renderInstalledVersions(installed);
+    updateVersionCard(version, false);
   } finally {
-    isStoppingPHP = false;
+    stoppingVersions.delete(version);
   }
 }
 
@@ -289,38 +376,44 @@ async function openConfigPanel(version) {
     )
     .join("");
 
+  const toggle = (key, checked) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0">
+      <span style="font-size:12px;color:var(--text)">${t("php." + key + "_label")}</span>
+      <label class="toggle">
+        <input type="checkbox" class="php-cfg-checkbox" data-key="${key}" ${checked ? "checked" : ""} />
+        <span class="toggle-track"></span>
+        <span class="toggle-thumb"></span>
+      </label>
+    </div>`;
+
   panel.innerHTML = `
     <div class="php-config-body">
       <div class="php-config-grid">
         <div class="php-config-field">
-          <label class="form-label" data-i18n="php.memory_limit">${t("php.memory_limit")}</label>
+          <label class="form-label">${t("php.memory_limit")}</label>
           <select class="select php-cfg-input" data-key="memory_limit">${memOpts}</select>
         </div>
         <div class="php-config-field">
-          <label class="form-label" data-i18n="php.post_max_size">${t("php.post_max_size")}</label>
+          <label class="form-label">${t("php.post_max_size")}</label>
           <select class="select php-cfg-input" data-key="post_max_size">${postOpts}</select>
         </div>
         <div class="php-config-field">
-          <label class="form-label" data-i18n="php.upload_max">${t("php.upload_max")}</label>
+          <label class="form-label">${t("php.upload_max")}</label>
           <select class="select php-cfg-input" data-key="upload_max_filesize">${uploadOpts}</select>
         </div>
         <div class="php-config-field">
-          <label class="form-label" data-i18n="php.max_exec_time">${t("php.max_exec_time")}</label>
+          <label class="form-label">${t("php.max_exec_time")}</label>
           <input type="number" class="input php-cfg-input" data-key="max_execution_time" value="${cfg.max_execution_time}" min="0" max="600" style="width:80px;text-align:center" />
         </div>
-      </div>
-      <div class="settings-row" style="padding:8px 0 0 0;border-top:none">
-        <div class="settings-label">
-          <div class="settings-label-title" style="font-size:12px" data-i18n="php.display_errors">${t("php.display_errors")}</div>
-        </div>
-        <div class="settings-control">
-          <label class="toggle">
-            <input type="checkbox" class="php-cfg-checkbox" data-key="display_errors" ${cfg.display_errors ? "checked" : ""} />
-            <span class="toggle-track"></span>
-            <span class="toggle-thumb"></span>
-          </label>
+        <div class="php-config-field">
+          <label class="form-label">${t("php.max_input_time")}</label>
+          <input type="number" class="input php-cfg-input" data-key="max_input_time" value="${cfg.max_input_time}" min="0" max="600" style="width:80px;text-align:center" />
         </div>
       </div>
+      ${toggle("display_errors", cfg.display_errors)}
+      ${toggle("html_errors", cfg.html_errors)}
+      ${toggle("log_errors", cfg.log_errors)}
+      ${toggle("short_open_tag", cfg.short_open_tag)}
       <div style="display:flex;justify-content:flex-end;margin-top:12px">
         <button class="btn btn-primary" id="php-cfg-save-${version}" data-version="${version}">${t("php.save_restart")}</button>
       </div>
@@ -330,17 +423,18 @@ async function openConfigPanel(version) {
   document
     .getElementById(`php-cfg-save-${version}`)
     ?.addEventListener("click", async () => {
+      const v = (key) => panel.querySelector(`[data-key="${key}"]`).value;
+      const c = (key) => panel.querySelector(`[data-key="${key}"]`).checked;
       const newCfg = {
-        memory_limit: panel.querySelector('[data-key="memory_limit"]').value,
-        post_max_size: panel.querySelector('[data-key="post_max_size"]').value,
-        upload_max_filesize: panel.querySelector(
-          '[data-key="upload_max_filesize"]',
-        ).value,
-        max_execution_time: panel.querySelector(
-          '[data-key="max_execution_time"]',
-        ).value,
-        display_errors: panel.querySelector('[data-key="display_errors"]')
-          .checked,
+        memory_limit: v("memory_limit"),
+        post_max_size: v("post_max_size"),
+        upload_max_filesize: v("upload_max_filesize"),
+        max_execution_time: v("max_execution_time"),
+        max_input_time: v("max_input_time"),
+        display_errors: c("display_errors"),
+        html_errors: c("html_errors"),
+        log_errors: c("log_errors"),
+        short_open_tag: c("short_open_tag"),
       };
       const ok = await SavePHPConfig(version, newCfg);
       if (ok) {
@@ -348,8 +442,7 @@ async function openConfigPanel(version) {
         await pollUntilStopped(() => IsPHPRunning(version));
         await StartPHP(version);
         panel.style.display = "none";
-        const installed = await GetPHPInstalledVersions();
-        await renderInstalledVersions(installed);
+        updateVersionCard(version, true);
       }
     });
 }

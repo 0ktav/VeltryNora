@@ -468,6 +468,52 @@ func GetSiteByName(name string) (Site, error) {
 	return Site{}, fmt.Errorf("site not found")
 }
 
+// resolveEnvDir finds the directory where the .env file should live.
+// For Laravel sites the nginx root points to public/, but .env is one level up.
+// Priority: root/.env → parent/.env → parent if root ends with "public" → root.
+func resolveEnvDir(root string) string {
+	if _, err := os.Stat(filepath.Join(root, ".env")); err == nil {
+		return root
+	}
+	parent := filepath.Dir(root)
+	if _, err := os.Stat(filepath.Join(parent, ".env")); err == nil {
+		return parent
+	}
+	// Neither exists — decide where to create based on convention.
+	if filepath.Base(root) == "public" {
+		return parent
+	}
+	return root
+}
+
+// GetEnvFile returns the content of the .env file for the site
+// and whether the file exists. Searches root and parent (for Laravel).
+func GetEnvFile(name string) (string, bool) {
+	site, err := GetSiteByName(name)
+	if err != nil || site.Root == "" {
+		return "", false
+	}
+	root := filepath.FromSlash(site.Root)
+	envPath := filepath.Join(resolveEnvDir(root), ".env")
+	data, err := os.ReadFile(envPath)
+	if err != nil {
+		return "", false
+	}
+	return string(data), true
+}
+
+// SaveEnvFile writes content to the .env file for the site.
+// Searches root and parent (for Laravel) to determine the correct location.
+func SaveEnvFile(name string, content string) error {
+	site, err := GetSiteByName(name)
+	if err != nil || site.Root == "" {
+		return fmt.Errorf("site not found")
+	}
+	root := filepath.FromSlash(site.Root)
+	envPath := filepath.Join(resolveEnvDir(root), ".env")
+	return os.WriteFile(envPath, []byte(content), 0644)
+}
+
 // CheckIndexFilesExist returns a list of index files that already exist in the site root.
 func CheckIndexFilesExist(domain string, customRoot string, checkHTML bool, checkPHP bool) []string {
 	root := SiteRoot(domain, customRoot)

@@ -21,7 +21,18 @@ func (a *App) GetSystemStats() system.SystemStats {
 }
 
 func (a *App) GetServicesStatus() []system.ServiceStatus {
-	return system.GetServicesStatus()
+	services := system.GetServicesStatus()
+	for i, s := range services {
+		switch s.Name {
+		case "Nginx":
+			services[i].Version = nginx.GetActiveVersion()
+		case "Redis":
+			services[i].Version = redis.GetActiveVersion()
+		case "MySQL":
+			services[i].Version = mysql.GetActiveVersion()
+		}
+	}
+	return services
 }
 
 func (a *App) IsOnline() bool {

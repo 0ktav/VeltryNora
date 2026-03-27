@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"nginxpanel/internal/sites"
 	"nginxpanel/internal/winexec"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -98,6 +101,80 @@ func (a *App) ChangeSitePHP(name string, phpVersion string) bool {
 
 func (a *App) ChangeSiteRoot(name string, newRoot string) bool {
 	return sites.ChangeSiteRoot(name, newRoot) == nil
+}
+
+func (a *App) GetEnvFile(siteName string) string {
+	content, _ := sites.GetEnvFile(siteName)
+	return content
+}
+
+func (a *App) EnvFileExists(siteName string) bool {
+	_, exists := sites.GetEnvFile(siteName)
+	return exists
+}
+
+func (a *App) SaveEnvFile(siteName string, content string) bool {
+	return sites.SaveEnvFile(siteName, content) == nil
+}
+
+var ansiEscapeRegex = regexp.MustCompile(`\x1b\[[0-9;]*[mGKHFABCDJsu]`)
+
+// RunSiteCommand runs a shell command in the site's project root directory.
+// Output is streamed line by line via "terminal:output:<name>" events.
+// Completion is signalled via "terminal:done:<name>" with a boolean success flag.
+func (a *App) RunSiteCommand(name string, command string) {
+	site, err := sites.GetSiteByName(name)
+	if err != nil {
+		runtime.EventsEmit(a.ctx, "terminal:done:"+name, false)
+		return
+	}
+
+	workDir := filepath.FromSlash(sites.LaravelProjectRoot(site.Root))
+
+	cmd := winexec.Command("cmd", "/c", command)
+	cmd.Dir = workDir
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		runtime.EventsEmit(a.ctx, "terminal:done:"+name, false)
+		return
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		runtime.EventsEmit(a.ctx, "terminal:done:"+name, false)
+		return
+	}
+
+	if err := cmd.Start(); err != nil {
+		runtime.EventsEmit(a.ctx, "terminal:output:"+name, "ERROR: "+err.Error())
+		runtime.EventsEmit(a.ctx, "terminal:done:"+name, false)
+		return
+	}
+
+	emit := func(line string) {
+		runtime.EventsEmit(a.ctx, "terminal:output:"+name, ansiEscapeRegex.ReplaceAllString(line, ""))
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			emit(scanner.Text())
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			emit(scanner.Text())
+		}
+	}()
+
+	err = cmd.Wait()
+	wg.Wait()
+	runtime.EventsEmit(a.ctx, "terminal:done:"+name, err == nil)
 }
 
 func (a *App) FlushDNS() bool {

@@ -24,6 +24,10 @@ import {
   OpenInBrowser,
   RunArtisan,
   RunLaravelUpdate,
+  GetEnvFile,
+  EnvFileExists,
+  SaveEnvFile,
+  RunSiteCommand,
 } from "../../wailsjs/go/main/App";
 import { EventsOn, EventsOff } from "../../wailsjs/runtime/runtime";
 import { alert, confirm, confirmWithCheckbox } from "./modal.js";
@@ -53,6 +57,8 @@ export function init() {
       if (action === "open-site") await openSite(domain);
       else if (action === "open-root") await openRoot(root);
       else if (action === "rewrites") await openRewritesPanel(name);
+      else if (action === "env") await openEnvPanel(name);
+      else if (action === "terminal") await openTerminalPanel(name, btn.dataset.hasPhp === "1", btn.dataset.hasLaravel === "1");
       else if (action === "log") await openLogPanel(name);
       else if (action === "change-php") await openChangePHPPanel(name);
       else if (action === "change-root") await openChangeRootPanel(name);
@@ -225,6 +231,12 @@ function buildSiteRow(site, phpRunning, nginxRunning) {
           <button class="btn btn-secondary btn-icon" data-action="rewrites" data-name="${site.name}" title="${t("sites.rewrites")}">
             <i data-lucide="route"></i>
           </button>
+          <button class="btn btn-secondary btn-icon" data-action="env" data-name="${site.name}" title="${t("sites.env")}">
+            <i data-lucide="key"></i>
+          </button>
+          <button class="btn btn-secondary btn-icon" data-action="terminal" data-name="${site.name}" data-has-php="${site.php_version ? "1" : "0"}" data-has-laravel="${site.laravel_version ? "1" : "0"}" title="${t("sites.terminal")}">
+            <i data-lucide="terminal"></i>
+          </button>
           <button class="btn btn-secondary btn-icon" data-action="log" data-name="${site.name}" title="${t("nav.logs")}">
             <i data-lucide="scroll-text"></i>
           </button>
@@ -242,6 +254,8 @@ function buildSiteRow(site, phpRunning, nginxRunning) {
       <div class="php-config-panel" id="site-php-${site.name}" style="display:none"></div>
       <div class="php-config-panel" id="site-root-${site.name}" style="display:none"></div>
       <div class="php-config-panel" id="site-rewrites-${site.name}" style="display:none"></div>
+      <div class="php-config-panel" id="site-env-${site.name}" style="display:none"></div>
+      <div class="php-config-panel" id="site-terminal-${site.name}" style="display:none"></div>
       <div class="php-config-panel" id="site-log-${site.name}" style="display:none"></div>
       <div class="php-config-panel" id="site-laravel-${site.name}" style="display:none"></div>
     </div>
@@ -857,6 +871,287 @@ async function openRewritesPanel(name) {
         await RestartNginx();
       }
     });
+}
+
+// ── Panel: .env editor ─────────────────────────────────────────────────────────
+
+function parseEnv(raw) {
+  return raw.split("\n")
+    .filter(line => { const s = line.trim(); return s && !s.startsWith("#"); })
+    .map(line => {
+      const idx = line.indexOf("=");
+      if (idx === -1) return { key: line.trim(), value: "" };
+      const key = line.substring(0, idx).trim();
+      let value = line.substring(idx + 1);
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+      return { key, value };
+    });
+}
+
+function serializeEnv(pairs) {
+  return pairs.map(({ key, value }) => {
+    if (!key) return null;
+    if (/[\s#"']/.test(value)) {
+      return `${key}="${value.replace(/"/g, '\\"')}"`;
+    }
+    return `${key}=${value}`;
+  }).filter(Boolean).join("\n");
+}
+
+function buildKvRows(tbody, pairs) {
+  tbody.innerHTML = pairs.map((_, i) => `
+    <tr data-row="${i}">
+      <td><input type="text" class="input env-key" value="${escapeHtml(pairs[i].key)}" style="font-family:var(--font-mono);font-size:11px;width:100%"/></td>
+      <td><input type="text" class="input env-value" value="${escapeHtml(pairs[i].value)}" style="font-family:var(--font-mono);font-size:11px;width:100%"/></td>
+      <td style="width:28px"><button class="btn btn-danger btn-icon env-del-row" style="font-size:11px;padding:2px 6px">×</button></td>
+    </tr>
+  `).join("");
+
+  tbody.querySelectorAll(".env-del-row").forEach(btn => {
+    btn.addEventListener("click", () => btn.closest("tr").remove());
+  });
+}
+
+function collectKvPairs(tbody) {
+  return [...tbody.querySelectorAll("tr")].map(row => ({
+    key: row.querySelector(".env-key").value.trim(),
+    value: row.querySelector(".env-value").value,
+  })).filter(p => p.key);
+}
+
+async function openEnvPanel(name) {
+  const panel = document.getElementById(`site-env-${name}`);
+  if (!panel) return;
+
+  if (panel.style.display !== "none") {
+    panel.style.display = "none";
+    return;
+  }
+
+  panel.innerHTML = `<div style="padding:12px;color:var(--text3);font-size:12px">${t("common.loading")}</div>`;
+  panel.style.display = "block";
+
+  const [exists, raw] = await Promise.all([EnvFileExists(name), GetEnvFile(name)]);
+
+  let activeTab = "kv";
+  let pairs = parseEnv(raw);
+
+  panel.innerHTML = `
+    <div class="php-config-body">
+      ${!exists ? `<div style="font-size:11px;color:var(--text3);margin-bottom:8px">${t("sites.env_create")}</div>` : ""}
+      <div class="env-tab-bar">
+        <button class="env-tab-btn active" data-tab="kv">${t("sites.env_tab_kv")}</button>
+        <button class="env-tab-btn" data-tab="raw">${t("sites.env_tab_raw")}</button>
+      </div>
+
+      <div id="env-kv-${name}" style="margin-top:8px">
+        <table style="width:100%;border-collapse:collapse;table-layout:fixed">
+          <colgroup><col style="width:38%"><col style="width:54%"><col style="width:28px"></colgroup>
+          <thead>
+            <tr>
+              <th style="font-size:10px;color:var(--text3);font-weight:500;text-align:left;padding-bottom:4px">${t("sites.env_key")}</th>
+              <th style="font-size:10px;color:var(--text3);font-weight:500;text-align:left;padding-bottom:4px">${t("sites.env_value")}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="env-kv-body-${name}"></tbody>
+        </table>
+        <button class="btn btn-secondary" id="env-add-${name}" style="margin-top:6px;font-size:11px">${t("sites.env_add")}</button>
+      </div>
+
+      <div id="env-raw-${name}" style="display:none;margin-top:8px">
+        <textarea
+          id="env-raw-input-${name}"
+          class="input"
+          style="font-family:var(--font-mono);font-size:11px;min-height:160px;width:100%;resize:vertical;line-height:1.6"
+          spellcheck="false"
+        ></textarea>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:10px">
+        <button class="btn btn-primary" id="env-save-${name}">${t("common.save")}</button>
+      </div>
+    </div>
+  `;
+
+  const tbody = document.getElementById(`env-kv-body-${name}`);
+  const rawInput = document.getElementById(`env-raw-input-${name}`);
+  buildKvRows(tbody, pairs);
+  rawInput.value = raw;
+
+  // Tab switching
+  panel.querySelectorAll(".env-tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const tab = btn.dataset.tab;
+      if (tab === activeTab) return;
+
+      if (activeTab === "kv") {
+        pairs = collectKvPairs(tbody);
+        rawInput.value = serializeEnv(pairs);
+      } else {
+        pairs = parseEnv(rawInput.value);
+        buildKvRows(tbody, pairs);
+      }
+
+      activeTab = tab;
+      panel.querySelectorAll(".env-tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+      document.getElementById(`env-kv-${name}`).style.display = tab === "kv" ? "" : "none";
+      document.getElementById(`env-raw-${name}`).style.display = tab === "raw" ? "" : "none";
+    });
+  });
+
+  // Add row
+  document.getElementById(`env-add-${name}`)?.addEventListener("click", () => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><input type="text" class="input env-key" style="font-family:var(--font-mono);font-size:11px;width:100%"/></td>
+      <td><input type="text" class="input env-value" style="font-family:var(--font-mono);font-size:11px;width:100%"/></td>
+      <td style="width:28px"><button class="btn btn-danger btn-icon env-del-row" style="font-size:11px;padding:2px 6px">×</button></td>
+    `;
+    tr.querySelector(".env-del-row").addEventListener("click", () => tr.remove());
+    tbody.appendChild(tr);
+    tr.querySelector(".env-key").focus();
+  });
+
+  // Save
+  document.getElementById(`env-save-${name}`)?.addEventListener("click", async () => {
+    let content;
+    if (activeTab === "kv") {
+      content = serializeEnv(collectKvPairs(tbody));
+    } else {
+      content = rawInput.value;
+    }
+    const ok = await SaveEnvFile(name, content);
+    if (ok) panel.style.display = "none";
+  });
+}
+
+// ── Panel: terminal ────────────────────────────────────────────────────────────
+
+function getQuickActions(hasPhp, hasLaravel) {
+  const actions = [];
+  if (hasLaravel) {
+    actions.push("php artisan migrate", "php artisan migrate:fresh --seed", "php artisan cache:clear", "php artisan config:clear");
+  }
+  if (hasPhp) {
+    actions.push("composer install", "composer update");
+  }
+  actions.push("npm install", "npm run dev", "npm run build");
+  return actions;
+}
+
+async function openTerminalPanel(name, hasPhp = false, hasLaravel = false) {
+  const panel = document.getElementById(`site-terminal-${name}`);
+  if (!panel) return;
+
+  if (panel.style.display !== "none") {
+    panel.style.display = "none";
+    return;
+  }
+
+  const history = [];
+  let historyIdx = -1;
+
+  panel.innerHTML = `
+    <div class="php-config-body">
+      <div id="terminal-output-${name}" class="terminal-output"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input
+          type="text"
+          id="terminal-input-${name}"
+          class="input"
+          style="flex:1;font-family:var(--font-mono);font-size:11px"
+          placeholder="${t("sites.terminal_placeholder")}"
+        />
+        <button class="btn btn-primary" id="terminal-run-${name}" style="font-size:11px">${t("sites.terminal_run")}</button>
+        <button class="btn btn-secondary" id="terminal-clear-${name}" style="font-size:11px">${t("sites.terminal_clear")}</button>
+      </div>
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
+        ${getQuickActions(hasPhp, hasLaravel).map(cmd => `<button class="terminal-quick-btn" data-cmd="${escapeHtml(cmd)}">${escapeHtml(cmd)}</button>`).join("")}
+      </div>
+    </div>
+  `;
+  panel.style.display = "block";
+
+  const output = document.getElementById(`terminal-output-${name}`);
+  const input = document.getElementById(`terminal-input-${name}`);
+  const runBtn = document.getElementById(`terminal-run-${name}`);
+  const clearBtn = document.getElementById(`terminal-clear-${name}`);
+
+  function appendLine(text, isCmd = false) {
+    const line = document.createElement("div");
+    if (isCmd) {
+      line.style.cssText = "color:var(--accent);margin-top:4px";
+      line.textContent = "$ " + text;
+    } else {
+      line.textContent = text;
+    }
+    output.appendChild(line);
+    output.scrollTop = output.scrollHeight;
+  }
+
+  async function runCommand(cmd) {
+    if (!cmd.trim()) return;
+    history.unshift(cmd);
+    historyIdx = -1;
+
+    appendLine(cmd, true);
+    input.value = "";
+    input.disabled = true;
+    runBtn.disabled = true;
+    runBtn.textContent = t("sites.terminal_running");
+
+    EventsOn(`terminal:output:${name}`, (line) => appendLine(line));
+    EventsOn(`terminal:done:${name}`, () => {
+      EventsOff(`terminal:output:${name}`);
+      EventsOff(`terminal:done:${name}`);
+      input.disabled = false;
+      runBtn.disabled = false;
+      runBtn.textContent = t("sites.terminal_run");
+      input.focus();
+    });
+
+    RunSiteCommand(name, cmd);
+  }
+
+  runBtn.addEventListener("click", () => runCommand(input.value));
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      runCommand(input.value);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (historyIdx < history.length - 1) {
+        historyIdx++;
+        input.value = history[historyIdx];
+      }
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (historyIdx > 0) {
+        historyIdx--;
+        input.value = history[historyIdx];
+      } else {
+        historyIdx = -1;
+        input.value = "";
+      }
+    }
+  });
+
+  clearBtn.addEventListener("click", () => { output.innerHTML = ""; });
+
+  panel.querySelectorAll(".terminal-quick-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      input.value = btn.dataset.cmd;
+      input.focus();
+    });
+  });
+
+  input.focus();
 }
 
 // ── Panel: logs ────────────────────────────────────────────────────────────────

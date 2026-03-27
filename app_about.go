@@ -12,6 +12,14 @@ import (
 //go:embed wails.json
 var wailsConfigBytes []byte
 
+//go:embed CHANGELOG.md
+var changelogBytes []byte
+
+// GetChangelog returns the full CHANGELOG.md content as a string.
+func (a *App) GetChangelog() string {
+	return string(changelogBytes)
+}
+
 type wailsConfig struct {
 	Name       string `json:"name"`
 	Version    string `json:"version"`

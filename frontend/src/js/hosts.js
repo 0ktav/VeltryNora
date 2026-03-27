@@ -126,9 +126,8 @@ function updateBatchBar() {
   const checkedSet = new Set(checked);
   document.querySelectorAll(".hosts-row").forEach((row) => {
     const isSelected = checkedSet.has(row.dataset.host);
-    row.style.background = isSelected ? "rgba(99,179,237,0.15)" : "";
-    row.style.borderRadius = isSelected ? "6px" : "";
-    row.style.outline = isSelected ? "1px solid rgba(99,179,237,0.5)" : "";
+    row.style.background = isSelected ? "rgba(62,207,110,0.08)" : "";
+    row.style.outline = isSelected ? "1px solid rgba(62,207,110,0.5)" : "";
     row.style.transition = "background 0.15s, outline 0.15s";
   });
 

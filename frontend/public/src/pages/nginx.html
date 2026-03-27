@@ -65,44 +65,58 @@
     </div>
   </div>
 
-  <!-- Installed versions -->
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-title">
-        <div class="dot" style="background: var(--nginx)"></div>
-        <span data-i18n="common.installed_versions">Installed versions</span>
-      </div>
-      <div class="panel-action" id="nginx-add-btn" data-i18n="common.add_new">
-        + Install new version
-      </div>
+  <!-- Tabs container -->
+  <div id="nginx-tabs-container">
+    <div class="tab-bar">
+      <button class="tab-btn" data-tab="control"><i data-lucide="sliders-horizontal"></i> <span data-i18n="tabs.control">Control</span></button>
+      <button class="tab-btn" data-tab="logs"><i data-lucide="scroll-text"></i> <span data-i18n="tabs.logs">Logs</span></button>
     </div>
-    <div class="panel-body">
-      <div id="nginx-versions-list" class="php-list"></div>
-    </div>
-  </div>
 
-  <!-- Logs -->
-  <div class="panel">
-    <div class="panel-header accordion-header" id="nginx-log-toggle" style="cursor:pointer">
-      <div class="panel-title">
-        <div class="dot" style="background:var(--text3)"></div>
-        <span data-i18n="nav.logs">Logs</span>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <div class="lang-selector" id="nginx-log-tab-selector" style="padding:2px;gap:2px;display:none">
-          <button class="lang-btn active" data-log="error" data-i18n="logs.error">Error</button>
-          <button class="lang-btn" data-log="access" data-i18n="logs.access">Access</button>
+    <!-- Control tab -->
+    <div class="tab-panel" data-tab="control">
+      <!-- Installed versions -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="dot" style="background: var(--nginx)"></div>
+            <span data-i18n="common.installed_versions">Installed versions</span>
+          </div>
+          <div class="panel-action" id="nginx-add-btn" data-i18n="common.add_new">
+            + Install new version
+          </div>
         </div>
-        <button class="btn btn-secondary btn-icon" id="nginx-log-refresh-btn" style="display:none"><i data-lucide="refresh-cw"></i></button>
-        <button class="btn btn-danger btn-icon" id="nginx-log-clear-btn" style="display:none"><i data-lucide="trash-2"></i></button>
-        <i data-lucide="chevron-down" id="nginx-log-chevron" style="color:var(--text3);width:16px;height:16px;transition:transform 0.2s"></i>
+        <div class="panel-body">
+          <div id="nginx-versions-list" class="php-list"></div>
+        </div>
       </div>
     </div>
-    <div id="nginx-log-body" style="display:none">
-      <div style="padding:0">
-        <pre id="nginx-log-content" class="log-viewer"><span style="color:var(--text3)" data-i18n="logs.loading">Loading...</span></pre>
+
+    <!-- Logs tab -->
+    <div class="tab-panel" data-tab="logs">
+      <div class="panel">
+        <div class="panel-header accordion-header" id="nginx-log-toggle" style="cursor:pointer">
+          <div class="panel-title">
+            <div class="dot" style="background:var(--text3)"></div>
+            <span data-i18n="nav.logs">Logs</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="lang-selector" id="nginx-log-tab-selector" style="padding:2px;gap:2px;display:none">
+              <button class="lang-btn active" data-log="error" data-i18n="logs.error">Error</button>
+              <button class="lang-btn" data-log="access" data-i18n="logs.access">Access</button>
+            </div>
+            <button class="btn btn-secondary btn-icon" id="nginx-log-refresh-btn" style="display:none"><i data-lucide="refresh-cw"></i></button>
+            <button class="btn btn-danger btn-icon" id="nginx-log-clear-btn" style="display:none"><i data-lucide="trash-2"></i></button>
+            <i data-lucide="chevron-down" id="nginx-log-chevron" style="color:var(--text3);width:16px;height:16px;transition:transform 0.2s"></i>
+          </div>
+        </div>
+        <div id="nginx-log-body" style="display:none">
+          <div style="padding:0">
+            <pre id="nginx-log-content" class="log-viewer"><span style="color:var(--text3)" data-i18n="logs.loading">Loading...</span></pre>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+
+  </div><!-- /nginx-tabs-container -->
 
 </div>

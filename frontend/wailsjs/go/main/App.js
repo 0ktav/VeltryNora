@@ -14,6 +14,10 @@ export function BrowseHtaccessFile() {
   return window['go']['main']['App']['BrowseHtaccessFile']();
 }
 
+export function CancelDownload(arg1) {
+  return window['go']['main']['App']['CancelDownload'](arg1);
+}
+
 export function ChangeSitePHP(arg1, arg2) {
   return window['go']['main']['App']['ChangeSitePHP'](arg1, arg2);
 }
@@ -158,6 +162,10 @@ export function DropMySQLUser(arg1, arg2) {
   return window['go']['main']['App']['DropMySQLUser'](arg1, arg2);
 }
 
+export function EnvFileExists(arg1) {
+  return window['go']['main']['App']['EnvFileExists'](arg1);
+}
+
 export function ExecRedisCommand(arg1) {
   return window['go']['main']['App']['ExecRedisCommand'](arg1);
 }
@@ -182,8 +190,20 @@ export function GetBasePath() {
   return window['go']['main']['App']['GetBasePath']();
 }
 
+export function GetChangelog() {
+  return window['go']['main']['App']['GetChangelog']();
+}
+
+export function GetDashboardVersions() {
+  return window['go']['main']['App']['GetDashboardVersions']();
+}
+
 export function GetDefaultBasePath() {
   return window['go']['main']['App']['GetDefaultBasePath']();
+}
+
+export function GetEnvFile(arg1) {
+  return window['go']['main']['App']['GetEnvFile'](arg1);
 }
 
 export function GetHostsEntries() {
@@ -392,6 +412,14 @@ export function RunArtisan(arg1, arg2, arg3) {
 
 export function RunLaravelUpdate(arg1, arg2) {
   return window['go']['main']['App']['RunLaravelUpdate'](arg1, arg2);
+}
+
+export function RunSiteCommand(arg1, arg2) {
+  return window['go']['main']['App']['RunSiteCommand'](arg1, arg2);
+}
+
+export function SaveEnvFile(arg1, arg2) {
+  return window['go']['main']['App']['SaveEnvFile'](arg1, arg2);
 }
 
 export function SavePHPConfig(arg1, arg2) {

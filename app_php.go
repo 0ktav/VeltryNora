@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"nginxpanel/internal/cache"
 	"nginxpanel/internal/notify"
 	"nginxpanel/internal/php"
 	"nginxpanel/internal/system"
 	"os/exec"
+	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -15,6 +17,8 @@ func (a *App) CheckPHPVersion() VersionResult {
 		php.GetLatestVersion,
 		func(c cache.VersionCache) string { return c.PHP },
 		func(c *cache.VersionCache, v string) { c.PHP = v },
+		func(c cache.VersionCache) time.Time { return c.PHPUpdatedAt },
+		func(c *cache.VersionCache, t time.Time) { c.PHPUpdatedAt = t },
 	)
 }
 
@@ -35,8 +39,16 @@ func (a *App) IsPHPRunning(version string) bool {
 }
 
 func (a *App) DownloadPHP(version string) string {
-	err := php.Download(version, func(percent int, totalMB float64) {
-		runtime.EventsEmit(a.ctx, "php:download-progress:"+version, map[string]interface{}{"percent": percent, "totalMB": totalMB})
+	key := "php:download-progress:" + version
+	ctx, cancel := context.WithCancel(a.ctx)
+	a.registerDownload(key, cancel)
+	defer func() {
+		cancel()
+		a.unregisterDownload(key)
+	}()
+
+	err := php.Download(ctx, version, func(percent int, totalMB float64) {
+		runtime.EventsEmit(a.ctx, key, map[string]interface{}{"percent": percent, "totalMB": totalMB})
 	})
 	if err != nil {
 		return err.Error()

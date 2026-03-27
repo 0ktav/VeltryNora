@@ -31,6 +31,7 @@ type SystemStats struct {
 	DiskUsed    float64 `json:"disk_used"`
 	DiskTotal   float64 `json:"disk_total"`
 	DiskPercent float64 `json:"disk_percent"`
+	DiskDrive   string  `json:"disk_drive"`
 	Uptime      string  `json:"uptime"`
 }
 
@@ -64,12 +65,14 @@ func GetStats() (SystemStats, error) {
 		stats.RAMPercent = math.Round(memInfo.UsedPercent*10) / 10
 	}
 
-	// Disk
-	diskInfo, err := disk.Usage("C:\\")
+	// Disk — use the drive where the app is installed
+	appDrive := filepath.VolumeName(GetBasePath()) + "\\"
+	diskInfo, err := disk.Usage(appDrive)
 	if err == nil {
 		stats.DiskUsed = math.Round(float64(diskInfo.Used)/1024/1024/1024*10) / 10
 		stats.DiskTotal = math.Round(float64(diskInfo.Total)/1024/1024/1024*10) / 10
 		stats.DiskPercent = math.Round(diskInfo.UsedPercent*10) / 10
+		stats.DiskDrive = filepath.VolumeName(GetBasePath())
 	}
 
 	// Uptime
@@ -115,7 +118,7 @@ func GetServicesStatus() []ServiceStatus {
 		{
 			Name:    "MySQL",
 			Version: "",
-			Running: isProcessRunning("mysqld.exe"),
+			Running: IsPortInUse(config.MySQLPort),
 			Type:    "single",
 		},
 	}

@@ -163,6 +163,7 @@
             <div class="nav-item" data-page="settings">
               <span class="nav-icon">⚙</span>
               <span data-i18n="nav.settings">Settings</span>
+              <span class="badge new" id="settings-new-badge" style="display:none">New</span>
             </div>
             <div class="nav-item" data-page="about">
               <span class="nav-icon" style="color:var(--text3)">ℹ</span>
@@ -170,14 +171,22 @@
             </div>
           </div>
 
-          <!-- Active downloads widget -->
-          <div id="sidebar-downloads"></div>
         </div>
 
         <!-- CONTENT -->
         <div class="content" id="content"></div>
       </div>
     </div>
+
+    <!-- Floating download card (fixed, does not affect layout) -->
+    <div id="dl-float-card" style="display:none">
+      <div id="dl-float-header">
+        <span id="dl-float-title"></span>
+        <button id="dl-float-toggle" type="button">−</button>
+      </div>
+      <div id="dl-float-body"></div>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

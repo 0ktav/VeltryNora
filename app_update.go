@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -75,16 +76,25 @@ func installedLocation() string {
 // DownloadUpdate downloads the installer to the temp directory.
 // Returns "" on success, error message on failure.
 func (a *App) DownloadUpdate(url string) string {
+	const key = "update:download-progress"
+	ctx, cancel := context.WithCancel(a.ctx)
+	a.registerDownload(key, cancel)
+	defer func() {
+		cancel()
+		a.unregisterDownload(key)
+	}()
+
 	dest := updateInstallerPath()
 	// Remove any leftover installer from a previous attempt before downloading.
 	os.Remove(dest)
-	err := utils.Download(url, dest, 0, func(percent int, totalMB float64) {
-		runtime.EventsEmit(a.ctx, "update:download-progress", map[string]interface{}{
+	err := utils.Download(ctx, url, dest, 0, func(percent int, totalMB float64) {
+		runtime.EventsEmit(a.ctx, key, map[string]interface{}{
 			"percent": percent,
 			"totalMB": totalMB,
 		})
 	})
 	if err != nil {
+		os.Remove(dest)
 		return err.Error()
 	}
 	return ""

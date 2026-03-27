@@ -13,6 +13,8 @@ export function BrowseFolder(arg1:string):Promise<string>;
 
 export function BrowseHtaccessFile():Promise<string>;
 
+export function CancelDownload(arg1:string):Promise<void>;
+
 export function ChangeSitePHP(arg1:string,arg2:string):Promise<boolean>;
 
 export function ChangeSiteRoot(arg1:string,arg2:string):Promise<boolean>;
@@ -85,6 +87,8 @@ export function DropMySQLDatabase(arg1:string):Promise<string>;
 
 export function DropMySQLUser(arg1:string,arg2:string):Promise<string>;
 
+export function EnvFileExists(arg1:string):Promise<boolean>;
+
 export function ExecRedisCommand(arg1:string):Promise<string>;
 
 export function ExportMySQLDatabase(arg1:string):Promise<string>;
@@ -97,7 +101,13 @@ export function GetAppLog():Promise<Array<string>>;
 
 export function GetBasePath():Promise<string>;
 
+export function GetChangelog():Promise<string>;
+
+export function GetDashboardVersions():Promise<main.DashboardVersions>;
+
 export function GetDefaultBasePath():Promise<string>;
+
+export function GetEnvFile(arg1:string):Promise<string>;
 
 export function GetHostsEntries():Promise<Array<hosts.HostEntry>>;
 
@@ -202,6 +212,10 @@ export function RevokeMySQLDatabase(arg1:string,arg2:string,arg3:string):Promise
 export function RunArtisan(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function RunLaravelUpdate(arg1:string,arg2:string):Promise<void>;
+
+export function RunSiteCommand(arg1:string,arg2:string):Promise<void>;
+
+export function SaveEnvFile(arg1:string,arg2:string):Promise<boolean>;
 
 export function SavePHPConfig(arg1:string,arg2:php.PHPConfig):Promise<boolean>;
 

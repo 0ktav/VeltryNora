@@ -65,75 +65,92 @@
     </div>
   </div>
 
-  <!-- Installed versions -->
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-title">
-        <div class="dot" style="background: var(--redis)"></div>
-        <span data-i18n="common.installed_versions">Installed versions</span>
-      </div>
-      <div class="panel-action" id="redis-add-btn" data-i18n="common.add_new">
-        + Install new version
-      </div>
+  <!-- Tabs container -->
+  <div id="redis-tabs-container">
+    <div class="tab-bar">
+      <button class="tab-btn" data-tab="control"><i data-lucide="sliders-horizontal"></i> <span data-i18n="tabs.control">Control</span></button>
+      <button class="tab-btn" data-tab="commands"><i data-lucide="terminal"></i> <span data-i18n="tabs.commands">Commands</span></button>
+      <button class="tab-btn" data-tab="logs"><i data-lucide="scroll-text"></i> <span data-i18n="tabs.logs">Logs</span></button>
     </div>
-    <div class="panel-body">
-      <div id="redis-versions-list"></div>
-    </div>
-  </div>
 
-  <!-- Commands -->
-  <div class="panel">
-    <div class="panel-header accordion-header" id="redis-cmd-toggle" style="cursor:pointer">
-      <div class="panel-title">
-        <div class="dot" style="background:var(--accent)"></div>
-        <span data-i18n="redis.commands">Commands</span>
-      </div>
-      <i data-lucide="chevron-down" id="redis-cmd-chevron" style="color:var(--text3);width:16px;height:16px;transition:transform 0.2s"></i>
-    </div>
-    <div id="redis-cmd-body" style="display:none">
-      <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
-          <button class="btn btn-secondary" data-cmd="PING">PING</button>
-          <button class="btn btn-secondary" data-cmd="DBSIZE">DBSIZE</button>
-          <button class="btn btn-secondary" data-cmd="INFO server">INFO</button>
-          <button class="btn btn-secondary" data-cmd="KEYS *">KEYS *</button>
-          <button class="btn btn-danger" id="redis-quick-flush" data-i18n="redis.flush_db">FLUSHDB</button>
+    <!-- Control tab -->
+    <div class="tab-panel" data-tab="control">
+      <!-- Installed versions -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="dot" style="background: var(--redis)"></div>
+            <span data-i18n="common.installed_versions">Installed versions</span>
+          </div>
+          <div class="panel-action" id="redis-add-btn" data-i18n="common.add_new">
+            + Install new version
+          </div>
         </div>
-        <div style="display:flex;gap:8px">
-          <input type="text" class="input" id="redis-cmd-input" style="font-family:var(--font-mono);flex:1" />
-          <button class="btn btn-primary" id="redis-cmd-run" data-i18n="redis.run">Run</button>
+        <div class="panel-body">
+          <div id="redis-versions-list"></div>
         </div>
-        <pre id="redis-cmd-output" class="log-viewer" style="min-height:80px;max-height:220px;margin:0"></pre>
       </div>
     </div>
-  </div>
 
-  <!-- Logs -->
-  <div class="panel">
-    <div class="panel-header accordion-header" id="redis-log-toggle" style="cursor:pointer">
-      <div class="panel-title">
-        <div class="dot" style="background:var(--text3)"></div>
-        <span data-i18n="nav.logs">Logs</span>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <label class="log-auto-label" id="redis-log-auto-label" style="display:none;align-items:center;gap:6px;cursor:pointer" title="Auto-refresh">
-          <label class="toggle" style="pointer-events:none">
-            <input type="checkbox" id="redis-log-auto-check" style="pointer-events:auto" />
-            <span class="toggle-track"></span>
-            <span class="toggle-thumb"></span>
-          </label>
-          <span style="font-size:11px;color:var(--text3);white-space:nowrap" data-i18n="logs.auto">Auto</span>
-        </label>
-        <button class="btn btn-secondary btn-icon" id="redis-log-refresh-btn" style="display:none"><i data-lucide="refresh-cw"></i></button>
-        <button class="btn btn-danger btn-icon" id="redis-log-clear-btn" style="display:none"><i data-lucide="trash-2"></i></button>
-        <i data-lucide="chevron-down" id="redis-log-chevron" style="color:var(--text3);width:16px;height:16px;transition:transform 0.2s"></i>
+    <!-- Commands tab -->
+    <div class="tab-panel" data-tab="commands">
+      <div class="panel">
+        <div class="panel-header accordion-header" id="redis-cmd-toggle" style="cursor:pointer">
+          <div class="panel-title">
+            <div class="dot" style="background:var(--accent)"></div>
+            <span data-i18n="redis.commands">Commands</span>
+          </div>
+          <i data-lucide="chevron-down" id="redis-cmd-chevron" style="color:var(--text3);width:16px;height:16px;transition:transform 0.2s"></i>
+        </div>
+        <div id="redis-cmd-body" style="display:none">
+          <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <button class="btn btn-secondary" data-cmd="PING">PING</button>
+              <button class="btn btn-secondary" data-cmd="DBSIZE">DBSIZE</button>
+              <button class="btn btn-secondary" data-cmd="INFO server">INFO</button>
+              <button class="btn btn-secondary" data-cmd="KEYS *">KEYS *</button>
+              <button class="btn btn-danger" id="redis-quick-flush" data-i18n="redis.flush_db">FLUSHDB</button>
+            </div>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="input" id="redis-cmd-input" style="font-family:var(--font-mono);flex:1" />
+              <button class="btn btn-primary" id="redis-cmd-run" data-i18n="redis.run">Run</button>
+            </div>
+            <pre id="redis-cmd-output" class="log-viewer" style="min-height:80px;max-height:220px;margin:0"></pre>
+          </div>
+        </div>
       </div>
     </div>
-    <div id="redis-log-body" style="display:none">
-      <div style="padding:0">
-        <pre id="redis-log-content" class="log-viewer"></pre>
+
+    <!-- Logs tab -->
+    <div class="tab-panel" data-tab="logs">
+      <div class="panel">
+        <div class="panel-header accordion-header" id="redis-log-toggle" style="cursor:pointer">
+          <div class="panel-title">
+            <div class="dot" style="background:var(--text3)"></div>
+            <span data-i18n="nav.logs">Logs</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <label class="log-auto-label" id="redis-log-auto-label" style="display:none;align-items:center;gap:6px;cursor:pointer" title="Auto-refresh">
+              <label class="toggle" style="pointer-events:none">
+                <input type="checkbox" id="redis-log-auto-check" style="pointer-events:auto" />
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </label>
+              <span style="font-size:11px;color:var(--text3);white-space:nowrap" data-i18n="logs.auto">Auto</span>
+            </label>
+            <button class="btn btn-secondary btn-icon" id="redis-log-refresh-btn" style="display:none"><i data-lucide="refresh-cw"></i></button>
+            <button class="btn btn-danger btn-icon" id="redis-log-clear-btn" style="display:none"><i data-lucide="trash-2"></i></button>
+            <i data-lucide="chevron-down" id="redis-log-chevron" style="color:var(--text3);width:16px;height:16px;transition:transform 0.2s"></i>
+          </div>
+        </div>
+        <div id="redis-log-body" style="display:none">
+          <div style="padding:0">
+            <pre id="redis-log-content" class="log-viewer"></pre>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+
+  </div><!-- /redis-tabs-container -->
 
 </div>

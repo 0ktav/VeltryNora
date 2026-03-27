@@ -20,6 +20,7 @@ type AppSettings struct {
 	PreferredBrowser    string `json:"preferred_browser"`    // exe path, empty = system default
 	NotifyServiceCrash  bool   `json:"notify_service_crash"`
 	NotifyOperationFail bool   `json:"notify_operation_fail"`
+	TabsLayout          bool   `json:"tabs_layout"`
 }
 
 func settingsPath() string {

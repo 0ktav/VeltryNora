@@ -52,109 +52,129 @@
     </div>
   </div>
 
-  <!-- Installed versions -->
-  <div class="panel">
-    <div class="panel-header">
-      <div class="panel-title">
-        <div class="dot" style="background: var(--mysql)"></div>
-        <span data-i18n="common.installed_versions">Installed versions</span>
-      </div>
-      <div class="panel-action" id="mysql-add-btn" data-i18n="common.add_new">
-        + Install new version
-      </div>
+  <!-- Tabs container -->
+  <div id="mysql-tabs-container">
+    <div class="tab-bar">
+      <button class="tab-btn" data-tab="control"><i data-lucide="sliders-horizontal"></i> <span data-i18n="tabs.control">Control</span></button>
+      <button class="tab-btn" data-tab="databases"><i data-lucide="database"></i> <span data-i18n="tabs.databases">Databases</span></button>
+      <button class="tab-btn" data-tab="users"><i data-lucide="users"></i> <span data-i18n="tabs.users">Users</span></button>
+      <button class="tab-btn" data-tab="logs"><i data-lucide="scroll-text"></i> <span data-i18n="tabs.logs">Logs</span></button>
     </div>
-    <div class="panel-body">
-      <div id="mysql-versions-list"></div>
-    </div>
-  </div>
 
-  <!-- Databases -->
-  <div class="panel" id="mysql-db-panel">
-    <div class="panel-header">
-      <div class="panel-title">
-        <div class="dot" style="background:var(--mysql)"></div>
-        <span data-i18n="mysql.databases">Databases</span>
+    <!-- Control tab -->
+    <div class="tab-panel" data-tab="control">
+      <!-- Installed versions -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="dot" style="background: var(--mysql)"></div>
+            <span data-i18n="common.installed_versions">Installed versions</span>
+          </div>
+          <div class="panel-action" id="mysql-add-btn" data-i18n="common.add_new">
+            + Install new version
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="mysql-versions-list"></div>
+        </div>
       </div>
     </div>
-    <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
-      <!-- Connection info -->
-      <div id="mysql-connection-info" style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center;padding:10px 12px;background:var(--bg2);border-radius:6px;font-size:12px">
-        <span style="display:flex;gap:6px;align-items:center">
-          <span style="color:var(--text3)">Host</span>
-          <span id="mysql-conn-host" style="font-family:var(--font-mono)">--</span>
-        </span>
-        <span style="display:flex;gap:6px;align-items:center">
-          <span style="color:var(--text3)">Port</span>
-          <span id="mysql-conn-port" style="font-family:var(--font-mono)">--</span>
-        </span>
-        <span style="display:flex;gap:6px;align-items:center">
-          <span style="color:var(--text3)" data-i18n="mysql.conn_user">User</span>
-          <span id="mysql-conn-user" style="font-family:var(--font-mono)">--</span>
-        </span>
-        <span style="display:flex;gap:6px;align-items:center">
-          <span style="color:var(--text3)" data-i18n="mysql.conn_password">Password</span>
-          <span id="mysql-conn-pass" style="font-family:var(--font-mono)">--</span>
-          <button id="mysql-conn-pass-toggle" class="btn btn-secondary btn-icon" style="display:none;width:22px;height:22px;padding:0">
-            <i data-lucide="eye" style="width:13px;height:13px"></i>
-          </button>
-        </span>
-      </div>
-      <!-- Create DB -->
-      <div style="display:flex;align-items:center;gap:8px">
-        <label for="mysql-db-name" style="font-size:12px;color:var(--text3);white-space:nowrap" data-i18n="mysql.db_name">Database name</label>
-        <input type="text" class="input" id="mysql-db-name" style="flex:1" />
-        <button class="btn btn-primary" id="mysql-db-create-btn" data-i18n="mysql.create_db">Create</button>
-      </div>
-      <div id="mysql-db-list"></div>
-    </div>
-  </div>
 
-  <!-- Users -->
-  <div class="panel" id="mysql-users-panel">
-    <div class="panel-header">
-      <div class="panel-title">
-        <div class="dot" style="background:var(--mysql)"></div>
-        <span data-i18n="mysql.users">Users</span>
+    <!-- Databases tab -->
+    <div class="tab-panel" data-tab="databases">
+      <div class="panel" id="mysql-db-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="dot" style="background:var(--mysql)"></div>
+            <span data-i18n="mysql.databases">Databases</span>
+          </div>
+        </div>
+        <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
+          <!-- Connection info -->
+          <div id="mysql-connection-info" style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center;padding:10px 12px;background:var(--bg2);border-radius:6px;font-size:12px">
+            <span style="display:flex;gap:6px;align-items:center">
+              <span style="color:var(--text3)">Host</span>
+              <span id="mysql-conn-host" style="font-family:var(--font-mono)">--</span>
+            </span>
+            <span style="display:flex;gap:6px;align-items:center">
+              <span style="color:var(--text3)">Port</span>
+              <span id="mysql-conn-port" style="font-family:var(--font-mono)">--</span>
+            </span>
+            <span style="display:flex;gap:6px;align-items:center">
+              <span style="color:var(--text3)" data-i18n="mysql.conn_user">User</span>
+              <span id="mysql-conn-user" style="font-family:var(--font-mono)">--</span>
+            </span>
+            <span style="display:flex;gap:6px;align-items:center">
+              <span style="color:var(--text3)" data-i18n="mysql.conn_password">Password</span>
+              <span id="mysql-conn-pass" style="font-family:var(--font-mono)">--</span>
+              <button id="mysql-conn-pass-toggle" class="btn btn-secondary btn-icon" style="display:none;width:22px;height:22px;padding:0">
+                <i data-lucide="eye" style="width:13px;height:13px"></i>
+              </button>
+            </span>
+          </div>
+          <!-- Create DB -->
+          <div style="display:flex;align-items:center;gap:8px">
+            <label for="mysql-db-name" style="font-size:12px;color:var(--text3);white-space:nowrap" data-i18n="mysql.db_name">Database name</label>
+            <input type="text" class="input" id="mysql-db-name" style="flex:1" />
+            <button class="btn btn-primary" id="mysql-db-create-btn" data-i18n="mysql.create_db">Create</button>
+          </div>
+          <div id="mysql-db-list"></div>
+        </div>
       </div>
     </div>
-    <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
-      <!-- Create user form -->
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <input type="text" class="input" id="mysql-user-name" style="flex:1;min-width:100px" placeholder="username" />
-        <input type="text" class="input" id="mysql-user-host" style="width:110px" value="localhost" placeholder="host" />
-        <input type="password" class="input" id="mysql-user-pass" style="flex:1;min-width:100px" placeholder="password" />
-        <button class="btn btn-primary" id="mysql-user-create-btn" data-i18n="mysql.create_user">Add user</button>
-      </div>
-      <div id="mysql-users-list"></div>
-    </div>
-  </div>
 
-  <!-- Logs -->
-  <div class="panel">
-    <div class="panel-header accordion-header" id="mysql-log-toggle" style="cursor:pointer">
-      <div class="panel-title">
-        <div class="dot" style="background:var(--text3)"></div>
-        <span data-i18n="nav.logs">Logs</span>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <label class="log-auto-label" id="mysql-log-auto-label" style="display:none;align-items:center;gap:6px;cursor:pointer" title="Auto-refresh">
-          <label class="toggle" style="pointer-events:none">
-            <input type="checkbox" id="mysql-log-auto-check" style="pointer-events:auto" />
-            <span class="toggle-track"></span>
-            <span class="toggle-thumb"></span>
-          </label>
-          <span style="font-size:11px;color:var(--text3);white-space:nowrap" data-i18n="logs.auto">Auto</span>
-        </label>
-        <button class="btn btn-secondary btn-icon" id="mysql-log-refresh-btn" style="display:none"><i data-lucide="refresh-cw"></i></button>
-        <button class="btn btn-danger btn-icon" id="mysql-log-clear-btn" style="display:none"><i data-lucide="trash-2"></i></button>
-        <i data-lucide="chevron-down" id="mysql-log-chevron" style="color:var(--text3);width:16px;height:16px;transition:transform 0.2s"></i>
-      </div>
-    </div>
-    <div id="mysql-log-body" style="display:none">
-      <div style="padding:0">
-        <pre id="mysql-log-content" class="log-viewer"></pre>
+    <!-- Users tab -->
+    <div class="tab-panel" data-tab="users">
+      <div class="panel" id="mysql-users-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="dot" style="background:var(--mysql)"></div>
+            <span data-i18n="mysql.users">Users</span>
+          </div>
+        </div>
+        <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
+          <!-- Create user form -->
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <input type="text" class="input" id="mysql-user-name" style="flex:1;min-width:100px" placeholder="username" />
+            <input type="text" class="input" id="mysql-user-host" style="width:110px" value="localhost" placeholder="host" />
+            <input type="password" class="input" id="mysql-user-pass" style="flex:1;min-width:100px" placeholder="password" />
+            <button class="btn btn-primary" id="mysql-user-create-btn" data-i18n="mysql.create_user">Add user</button>
+          </div>
+          <div id="mysql-users-list"></div>
+        </div>
       </div>
     </div>
-  </div>
+
+    <!-- Logs tab -->
+    <div class="tab-panel" data-tab="logs">
+      <div class="panel">
+        <div class="panel-header accordion-header" id="mysql-log-toggle" style="cursor:pointer">
+          <div class="panel-title">
+            <div class="dot" style="background:var(--text3)"></div>
+            <span data-i18n="nav.logs">Logs</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <label class="log-auto-label" id="mysql-log-auto-label" style="display:none;align-items:center;gap:6px;cursor:pointer" title="Auto-refresh">
+              <label class="toggle" style="pointer-events:none">
+                <input type="checkbox" id="mysql-log-auto-check" style="pointer-events:auto" />
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </label>
+              <span style="font-size:11px;color:var(--text3);white-space:nowrap" data-i18n="logs.auto">Auto</span>
+            </label>
+            <button class="btn btn-secondary btn-icon" id="mysql-log-refresh-btn" style="display:none"><i data-lucide="refresh-cw"></i></button>
+            <button class="btn btn-danger btn-icon" id="mysql-log-clear-btn" style="display:none"><i data-lucide="trash-2"></i></button>
+            <i data-lucide="chevron-down" id="mysql-log-chevron" style="color:var(--text3);width:16px;height:16px;transition:transform 0.2s"></i>
+          </div>
+        </div>
+        <div id="mysql-log-body" style="display:none">
+          <div style="padding:0">
+            <pre id="mysql-log-content" class="log-viewer"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /mysql-tabs-container -->
 
 </div>

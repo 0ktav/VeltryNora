@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -94,7 +95,7 @@ func IsRunning() bool {
 	return system.IsProcessRunning("redis-server.exe")
 }
 
-func Download(version string, onProgress func(percent int, totalMB float64)) error {
+func Download(ctx context.Context, version string, onProgress func(percent int, totalMB float64)) error {
 	url := fmt.Sprintf("%s/v%s/Redis-x64-%s.zip", config.RedisDownloadURL, version, version)
 	basePath := system.GetBasePath()
 	zipPath := filepath.Join(basePath, config.DownloadsFolder, "redis-"+version+".zip")
@@ -102,12 +103,23 @@ func Download(version string, onProgress func(percent int, totalMB float64)) err
 
 	os.MkdirAll(filepath.Join(basePath, config.RedisFolder), 0755)
 
-	err := utils.Download(url, zipPath, 0, onProgress)
-	if err != nil {
+	var success bool
+	defer func() {
+		if !success {
+			os.Remove(zipPath)
+			os.RemoveAll(destDir)
+		}
+	}()
+
+	if err := utils.Download(ctx, url, zipPath, 0, onProgress); err != nil {
+		return err
+	}
+	if err := utils.Unzip(zipPath, destDir, ""); err != nil {
 		return err
 	}
 
-	return utils.Unzip(zipPath, destDir, "")
+	success = true
+	return nil
 }
 
 func Start(version string) error {

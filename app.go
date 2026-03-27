@@ -9,45 +9,56 @@ import (
 	"nginxpanel/internal/php"
 	"nginxpanel/internal/redis"
 	"nginxpanel/internal/system"
+	"sync"
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type App struct {
-	ctx        context.Context
-	forceQuit  bool
+	ctx             context.Context
+	forceQuit       bool
+	downloadCancels map[string]context.CancelFunc
+	downloadMu      sync.Mutex
 }
 
 type VersionResult struct {
-	Version   string `json:"version"`
-	FromCache bool   `json:"from_cache"`
+	Version   string    `json:"version"`
+	FromCache bool      `json:"from_cache"`
+	CachedAt  time.Time `json:"cached_at"`
 }
 
 func NewApp() *App {
-	return &App{}
+	return &App{
+		downloadCancels: make(map[string]context.CancelFunc),
+	}
 }
 
 func checkLatestVersion(
 	getLatest func() (string, error),
 	getCached func(cache.VersionCache) string,
 	setCached func(*cache.VersionCache, string),
+	getUpdatedAt func(cache.VersionCache) time.Time,
+	setUpdatedAt func(*cache.VersionCache, time.Time),
 ) VersionResult {
 	c, _ := cache.Load()
 	cached := getCached(c)
+	updatedAt := getUpdatedAt(c)
 	if !system.IsOnline() {
-		return VersionResult{Version: cached, FromCache: true}
+		return VersionResult{Version: cached, FromCache: true, CachedAt: updatedAt}
 	}
-	if !cache.IsExpired(c) && cached != "" {
-		return VersionResult{Version: cached, FromCache: true}
+	if !cache.IsServiceExpired(updatedAt) && cached != "" {
+		return VersionResult{Version: cached, FromCache: true, CachedAt: updatedAt}
 	}
 	version, err := getLatest()
 	if err != nil || version == "necunoscut" {
-		return VersionResult{Version: cached, FromCache: true}
+		return VersionResult{Version: cached, FromCache: true, CachedAt: updatedAt}
 	}
+	now := time.Now()
 	setCached(&c, version)
+	setUpdatedAt(&c, now)
 	cache.Save(c)
-	return VersionResult{Version: version, FromCache: false}
+	return VersionResult{Version: version, FromCache: false, CachedAt: now}
 }
 
 func (a *App) ShowNotification(title, message string) {

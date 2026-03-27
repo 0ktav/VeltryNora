@@ -1,6 +1,7 @@
 package nodejs
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -74,7 +75,7 @@ func getLatestLTS() (string, error) {
 
 // Download fetches the latest Node.js LTS and extracts it to {basePath}/nodejs/.
 // If addToSystemPath is true, the nodejs directory is appended to the machine PATH.
-func Download(addToSystemPath bool, onProgress func(percent int, totalMB float64)) error {
+func Download(ctx context.Context, addToSystemPath bool, onProgress func(percent int, totalMB float64)) error {
 	version, err := getLatestLTS()
 	if err != nil {
 		return fmt.Errorf("failed to fetch latest Node.js LTS: %w", err)
@@ -86,7 +87,16 @@ func Download(addToSystemPath bool, onProgress func(percent int, totalMB float64
 	os.RemoveAll(destDir)
 
 	zipPath := filepath.Join(system.GetBasePath(), config.DownloadsFolder, "nodejs.zip")
-	if err := utils.Download(url, zipPath, 0, onProgress); err != nil {
+
+	var success bool
+	defer func() {
+		if !success {
+			os.Remove(zipPath)
+			os.RemoveAll(destDir)
+		}
+	}()
+
+	if err := utils.Download(ctx, url, zipPath, 0, onProgress); err != nil {
 		return err
 	}
 
@@ -99,6 +109,7 @@ func Download(addToSystemPath bool, onProgress func(percent int, totalMB float64
 	if addToSystemPath {
 		addToPath(destDir)
 	}
+	success = true
 	return nil
 }
 

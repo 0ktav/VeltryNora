@@ -11,9 +11,10 @@ import {
   StopNginx,
   GetLogs,
   ClearLog,
+  GetSettings,
 } from "../../wailsjs/go/main/App";
 import { alert, confirm } from "./modal.js";
-import { addListener, pollUntilStopped } from "./utils.js";
+import { addListener, pollUntilStopped, initTabs } from "./utils.js";
 import { runInstall, openInstallModal } from "./installer.js";
 import { t } from "./i18n.js";
 import { createIcons, icons } from "lucide";
@@ -298,6 +299,10 @@ export function init() {
       else if (action === "delete") await deleteNginxVersion(version, btn);
     });
   }
+
+  GetSettings().then((s) => {
+    if (s.tabs_layout) initTabs("nginx-tabs-container", "control");
+  });
 
   loadNginxPage();
 

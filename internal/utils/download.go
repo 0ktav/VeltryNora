@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,8 +11,9 @@ import (
 
 // Download fetches url to destPath, calling onProgress(percent, totalMB) as data arrives.
 // sizeHint provides the total file size when the server omits Content-Length (pass 0 if unknown).
-func Download(url string, destPath string, sizeHint int64, onProgress func(percent int, totalMB float64)) error {
-	req, err := http.NewRequest("GET", url, nil)
+// Cancelling ctx aborts the transfer and returns ctx.Err().
+func Download(ctx context.Context, url string, destPath string, sizeHint int64, onProgress func(percent int, totalMB float64)) error {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return err
 	}

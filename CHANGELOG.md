@@ -1,3 +1,20 @@
+## v1.5.0 — 2026-03-27
+
+### Added
+- **UI: opt-in tabs layout** — Settings toggle to display Nginx, MySQL and Redis service pages with tabs (Control · Logs / Control · Databases · Users · Logs / Control · Commands · Logs) instead of vertical scroll; tab icons colored per section
+- **UI: "New" feature badge** — first-run badge on the Settings nav item and on the Interface panel guides users to the new tabs layout setting
+- **PHP: Start All / Stop All** — bulk buttons to start or stop all installed PHP versions in parallel; per-version concurrency guards prevent conflicts
+- **Dashboard: active version badge** — each service card (Nginx, MySQL, Redis) shows the currently active version
+- **Dashboard: install-drive disk usage** — disk stats now reflect the drive where services are installed, not always C:
+- **Dashboard: parallel version checks** — Nginx, PHP and Redis latest-version lookups run in parallel, reducing dashboard load time
+
+### Fixed
+- **MySQL: spinner on start** — clicking Start now immediately shows a loading spinner and polls until the service is ready before refreshing status
+- **MySQL: false running state during install** — MySQL no longer shows as running while the installer briefly spawns the mysqld process during initialization; detection now uses port 3306 instead of process name
+- **Hosts: selection highlight color** — selected host rows now use the correct green accent color
+
+---
+
 ## v1.4.0 — 2026-03-26
 
 ### Added

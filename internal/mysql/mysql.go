@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"archive/zip"
+	"context"
 	"fmt"
 	"nginxpanel/internal/config"
 	"nginxpanel/internal/system"
@@ -58,7 +59,7 @@ func SetActiveVersion(version string) error {
 }
 
 func IsRunning() bool {
-	return system.IsProcessRunning("mysqld.exe")
+	return system.IsPortInUse(config.MySQLPort)
 }
 
 // findMysqld returns true if mysqld.exe exists directly under dir/bin/ or one level deeper.
@@ -126,15 +127,23 @@ func zipTopDir(zipPath string) string {
 
 // Install downloads, extracts and initializes MySQL for the given version.
 // onProgress is called with 0–100 during the full process.
-func Install(version string, onProgress func(percent int, totalMB float64)) error {
+func Install(ctx context.Context, version string, onProgress func(percent int, totalMB float64)) error {
 	basePath := system.GetBasePath()
 	zipPath := filepath.Join(basePath, config.DownloadsFolder, "mysql-"+version+".zip")
 	destDir := versionDir(version)
 
 	os.MkdirAll(filepath.Join(basePath, config.MySQLFolder), 0755)
 
+	var success bool
+	defer func() {
+		if !success {
+			os.Remove(zipPath)
+			os.RemoveAll(destDir)
+		}
+	}()
+
 	// Download (0–80%)
-	err := utils.Download(downloadURL(version), zipPath, 0, func(p int, mb float64) {
+	err := utils.Download(ctx, downloadURL(version), zipPath, 0, func(p int, mb float64) {
 		onProgress(p*80/100, mb)
 	})
 	if err != nil {
@@ -168,11 +177,11 @@ func Install(version string, onProgress func(percent int, totalMB float64)) erro
 	cmd := winexec.Command(mysqld, "--defaults-file="+iniSlash, "--initialize-insecure")
 	cmd.Dir = destDir
 	if err := cmd.Run(); err != nil {
-		os.RemoveAll(destDir) // clean up on init failure
 		return fmt.Errorf("mysqld --initialize-insecure failed: %w", err)
 	}
 	onProgress(100, 0)
 
+	success = true
 	return nil
 }
 

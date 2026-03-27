@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"nginxpanel/internal/cache"
 	"nginxpanel/internal/notify"
 	"nginxpanel/internal/redis"
 	"strings"
+	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -14,6 +16,8 @@ func (a *App) CheckRedisVersion() VersionResult {
 		redis.GetLatestVersion,
 		func(c cache.VersionCache) string { return c.Redis },
 		func(c *cache.VersionCache, v string) { c.Redis = v },
+		func(c cache.VersionCache) time.Time { return c.RedisUpdatedAt },
+		func(c *cache.VersionCache, t time.Time) { c.RedisUpdatedAt = t },
 	)
 }
 
@@ -39,8 +43,16 @@ func (a *App) IsRedisRunning() bool {
 }
 
 func (a *App) DownloadRedis(version string) bool {
-	err := redis.Download(version, func(percent int, totalMB float64) {
-		runtime.EventsEmit(a.ctx, "redis:download-progress:"+version, map[string]interface{}{"percent": percent, "totalMB": totalMB})
+	key := "redis:download-progress:" + version
+	ctx, cancel := context.WithCancel(a.ctx)
+	a.registerDownload(key, cancel)
+	defer func() {
+		cancel()
+		a.unregisterDownload(key)
+	}()
+
+	err := redis.Download(ctx, version, func(percent int, totalMB float64) {
+		runtime.EventsEmit(a.ctx, key, map[string]interface{}{"percent": percent, "totalMB": totalMB})
 	})
 	return err == nil
 }

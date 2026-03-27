@@ -105,6 +105,7 @@ export const translations = {
         { icon: 'browser', label: 'Preferred browser' },
         { icon: 'bell',    label: 'Notify on service crash' },
         { icon: 'alert',   label: 'Notify on operation fail' },
+        { icon: 'tabs',    label: 'Tabs layout for service pages' },
       ],
     },
     changelog: {
@@ -220,6 +221,7 @@ export const translations = {
         { icon: 'browser', label: 'Browser preferat' },
         { icon: 'bell',    label: 'Notificare la crash serviciu' },
         { icon: 'alert',   label: 'Notificare la eroare operație' },
+        { icon: 'tabs',    label: 'Layout cu file pentru pagini servicii' },
       ],
     },
     changelog: {
@@ -335,6 +337,7 @@ export const translations = {
         { icon: 'browser', label: 'Предпочитаемый браузер' },
         { icon: 'bell',    label: 'Уведомление при сбое сервиса' },
         { icon: 'alert',   label: 'Уведомление при ошибке операции' },
+        { icon: 'tabs',    label: 'Layout с вкладками для страниц сервисов' },
       ],
     },
     changelog: {

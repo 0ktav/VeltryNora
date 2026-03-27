@@ -1,4 +1,4 @@
-import { GetAppInfo, CheckForUpdates, OpenURL, GetInstallLocation } from "../../wailsjs/go/main/App";
+import { GetAppInfo, CheckForUpdates, OpenURL, GetInstallLocation, GetChangelog } from "../../wailsjs/go/main/App";
 import { EventsOn } from "../../wailsjs/runtime";
 import { t } from "./i18n.js";
 import { getPendingUpdate, downloadAndInstall, installUpdate, hideUpdateBadge } from "./updater.js";
@@ -23,6 +23,8 @@ export async function init() {
 
   const checkBtn = document.getElementById("about-check-updates-btn");
   if (checkBtn) checkBtn.onclick = checkUpdates;
+
+  GetChangelog().then(renderChangelog);
 
   // If update was already detected on startup, show it immediately; otherwise auto-check
   const pending = getPendingUpdate();
@@ -60,6 +62,69 @@ async function checkUpdates() {
   }
 
   showUpdateAvailable(result);
+}
+
+function renderChangelog(md) {
+  const el = document.getElementById("about-changelog");
+  if (!el || !md) return;
+
+  const sectionColors = { added: "var(--good)", changed: "var(--accent2)", fixed: "var(--warn)", removed: "var(--danger)" };
+
+  // Parse into version blocks: [{ title, body }]
+  const blocks = [];
+  let current = null;
+  let inList = false;
+  let bodyHtml = "";
+
+  const flushList = () => { if (inList) { bodyHtml += "</ul>"; inList = false; } };
+
+  for (const raw of md.split("\n")) {
+    const line = raw.trim();
+    if (line.startsWith("## ")) {
+      flushList();
+      if (current) { current.body = bodyHtml; blocks.push(current); }
+      current = { title: line.slice(3) };
+      bodyHtml = "";
+    } else if (!current) {
+      continue;
+    } else if (line.startsWith("### ")) {
+      flushList();
+      const label = line.slice(4).toLowerCase();
+      const color = sectionColors[label] || "var(--text3)";
+      bodyHtml += `<div class="cl-section" style="color:${color}">${line.slice(4)}</div><ul class="cl-list">`;
+      inList = true;
+    } else if (line.startsWith("- ")) {
+      if (!inList) { bodyHtml += "<ul class=\"cl-list\">"; inList = true; }
+      const content = line.slice(2).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+      bodyHtml += `<li>${content}</li>`;
+    } else if (line === "---") {
+      flushList();
+    }
+  }
+  flushList();
+  if (current) { current.body = bodyHtml; blocks.push(current); }
+
+  // Build accordion HTML — first block open by default
+  let html = "";
+  blocks.forEach((block, i) => {
+    const open = i === 0;
+    html += `
+      <div class="cl-accordion${open ? " cl-open" : ""}">
+        <button class="cl-acc-header" type="button">
+          <span class="cl-acc-title">${block.title}</span>
+          <span class="cl-acc-arrow">▾</span>
+        </button>
+        <div class="cl-acc-body">${block.body}</div>
+      </div>`;
+  });
+  el.innerHTML = html;
+
+  // Toggle on click
+  el.querySelectorAll(".cl-acc-header").forEach(btn => {
+    btn.addEventListener("click", () => {
+      btn.closest(".cl-accordion").classList.toggle("cl-open");
+    });
+  });
 }
 
 function showUpdateAvailable(result) {

@@ -1,6 +1,7 @@
 package php
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -257,7 +258,7 @@ func rangeFileSize(url string) int64 {
 	return -1
 }
 
-func Download(version string, onProgress func(percent int, totalMB float64)) error {
+func Download(ctx context.Context, version string, onProgress func(percent int, totalMB float64)) error {
 	downloadURL, headSize, err := resolveDownloadURL(version)
 	if err != nil {
 		return err
@@ -268,12 +269,23 @@ func Download(version string, onProgress func(percent int, totalMB float64)) err
 
 	os.MkdirAll(filepath.Join(basePath, config.PHPFolder), 0755)
 
-	err = utils.Download(downloadURL, zipPath, headSize, onProgress)
-	if err != nil {
+	var success bool
+	defer func() {
+		if !success {
+			os.Remove(zipPath)
+			os.RemoveAll(destDir)
+		}
+	}()
+
+	if err := utils.Download(ctx, downloadURL, zipPath, headSize, onProgress); err != nil {
+		return err
+	}
+	if err := utils.Unzip(zipPath, destDir, ""); err != nil {
 		return err
 	}
 
-	return utils.Unzip(zipPath, destDir, "")
+	success = true
+	return nil
 }
 
 func VersionToPort(version string) int {
@@ -333,7 +345,11 @@ type PHPConfig struct {
 	PostMaxSize       string `json:"post_max_size"`
 	UploadMaxFilesize string `json:"upload_max_filesize"`
 	MaxExecutionTime  string `json:"max_execution_time"`
+	MaxInputTime      string `json:"max_input_time"`
 	DisplayErrors     bool   `json:"display_errors"`
+	HtmlErrors        bool   `json:"html_errors"`
+	LogErrors         bool   `json:"log_errors"`
+	ShortOpenTag      bool   `json:"short_open_tag"`
 }
 
 func GetConfig(version string) PHPConfig {
@@ -343,7 +359,11 @@ func GetConfig(version string) PHPConfig {
 		PostMaxSize:       "8M",
 		UploadMaxFilesize: "2M",
 		MaxExecutionTime:  "30",
-		DisplayErrors:     false,
+		MaxInputTime:  "60",
+		DisplayErrors: false,
+		HtmlErrors:    true,
+		LogErrors:     true,
+		ShortOpenTag:  false,
 	}
 
 	data, err := os.ReadFile(resolveIni(basePath, version))
@@ -364,8 +384,16 @@ func GetConfig(version string) PHPConfig {
 			cfg.UploadMaxFilesize = v
 		} else if v, ok := iniGet(line, "max_execution_time"); ok {
 			cfg.MaxExecutionTime = v
+		} else if v, ok := iniGet(line, "max_input_time"); ok {
+			cfg.MaxInputTime = v
 		} else if v, ok := iniGet(line, "display_errors"); ok {
 			cfg.DisplayErrors = strings.EqualFold(v, "on") || v == "1"
+		} else if v, ok := iniGet(line, "html_errors"); ok {
+			cfg.HtmlErrors = strings.EqualFold(v, "on") || v == "1"
+		} else if v, ok := iniGet(line, "log_errors"); ok {
+			cfg.LogErrors = strings.EqualFold(v, "on") || v == "1"
+		} else if v, ok := iniGet(line, "short_open_tag"); ok {
+			cfg.ShortOpenTag = strings.EqualFold(v, "on") || v == "1"
 		}
 	}
 	return cfg
@@ -393,9 +421,11 @@ func SaveConfig(version string, cfg PHPConfig) error {
 		return err
 	}
 
-	displayErrors := "Off"
-	if cfg.DisplayErrors {
-		displayErrors = "On"
+	boolVal := func(b bool) string {
+		if b {
+			return "On"
+		}
+		return "Off"
 	}
 
 	content := string(data)
@@ -403,7 +433,11 @@ func SaveConfig(version string, cfg PHPConfig) error {
 	content = iniSet(content, "post_max_size", cfg.PostMaxSize)
 	content = iniSet(content, "upload_max_filesize", cfg.UploadMaxFilesize)
 	content = iniSet(content, "max_execution_time", cfg.MaxExecutionTime)
-	content = iniSet(content, "display_errors", displayErrors)
+	content = iniSet(content, "max_input_time", cfg.MaxInputTime)
+	content = iniSet(content, "display_errors", boolVal(cfg.DisplayErrors))
+	content = iniSet(content, "html_errors", boolVal(cfg.HtmlErrors))
+	content = iniSet(content, "log_errors", boolVal(cfg.LogErrors))
+	content = iniSet(content, "short_open_tag", boolVal(cfg.ShortOpenTag))
 
 	return os.WriteFile(dst, []byte(content), 0644)
 }
