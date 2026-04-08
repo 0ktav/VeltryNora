@@ -12,6 +12,7 @@ import {
   GetLogs,
   ClearLog,
   GetSettings,
+  SaveSettings,
 } from "../../wailsjs/go/main/App";
 import { alert, confirm } from "./modal.js";
 import { addListener, pollUntilStopped, initTabs } from "./utils.js";
@@ -302,6 +303,36 @@ export function init() {
 
   GetSettings().then((s) => {
     if (s.tabs_layout) initTabs("nginx-tabs-container", "control");
+
+    const selBufferSize = document.getElementById("nginx-client-header-buffer-size");
+    const selLargeBuffers = document.getElementById("nginx-large-client-header-buffers");
+    if (selBufferSize) selBufferSize.value = s.nginx_client_header_buffer_size || "4k";
+    if (selLargeBuffers) selLargeBuffers.value = s.nginx_large_client_header_buffers || "4 8k";
+  });
+
+  document.getElementById("nginx-header-buffers-save")?.addEventListener("click", async () => {
+    const saveBtn = document.getElementById("nginx-header-buffers-save");
+    const bufferSize = document.getElementById("nginx-client-header-buffer-size")?.value.trim();
+    const largeBuffers = document.getElementById("nginx-large-client-header-buffers")?.value.trim();
+    if (!bufferSize || !largeBuffers) return;
+
+    saveBtn.disabled = true;
+    const s = await GetSettings();
+    s.nginx_client_header_buffer_size = bufferSize;
+    s.nginx_large_client_header_buffers = largeBuffers;
+    const ok = await SaveSettings(s);
+    if (ok) {
+      await RestartNginx();
+      saveBtn.textContent = t("common.saved");
+      saveBtn.classList.replace("btn-primary", "btn-secondary");
+      setTimeout(() => {
+        saveBtn.disabled = false;
+        saveBtn.textContent = t("nginx.save_restart");
+        saveBtn.classList.replace("btn-secondary", "btn-primary");
+      }, 1500);
+    } else {
+      saveBtn.disabled = false;
+    }
   });
 
   loadNginxPage();

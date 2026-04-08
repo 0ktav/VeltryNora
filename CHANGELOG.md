@@ -1,3 +1,13 @@
+## v1.6.0 — 2026-04-08
+
+### Added
+- **UI: button click pulse** — all buttons show a brief pulse animation on click as visual feedback
+- **UI: active panel button glow** — buttons that open inline panels (sites: logs, rewrites, env, terminal, PHP change, etc.; PHP: config, extensions, logs) stay highlighted with a persistent pulse while the panel is open
+- **UI: panel scroll + title** — opening an inline panel auto-scrolls to it and shows a title label at the top
+- **Nginx: global header buffer settings** — new "Header Buffers" panel on the Nginx page with preset selects for `client_header_buffer_size` and `large_client_header_buffers`; values applied to `nginx.conf` on Save & Restart
+
+---
+
 ## v1.5.0 — 2026-03-27
 
 ### Added

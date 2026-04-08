@@ -95,6 +95,10 @@ const translations = {
     "nginx.delete_title": "Șterge versiunea",
     "nginx.delete_confirm":
       'Ești sigur că vrei să ștergi <strong style="color:var(--text)">Nginx {version}</strong>?<br>Această acțiune nu poate fi anulată.',
+    "nginx.header_buffers": "Header Buffers",
+    "nginx.client_header_buffer_size": "client_header_buffer_size",
+    "nginx.large_client_header_buffers": "large_client_header_buffers",
+    "nginx.save_restart": "Salvează & Repornește",
 
     // PHP
     "php.title": "PHP Manager",
@@ -474,6 +478,10 @@ const translations = {
     "nginx.delete_title": "Delete version",
     "nginx.delete_confirm":
       'Are you sure you want to delete <strong style="color:var(--text)">Nginx {version}</strong>?<br>This action cannot be undone.',
+    "nginx.header_buffers": "Header Buffers",
+    "nginx.client_header_buffer_size": "client_header_buffer_size",
+    "nginx.large_client_header_buffers": "large_client_header_buffers",
+    "nginx.save_restart": "Save & Restart",
 
     // PHP
     "php.title": "PHP Manager",
@@ -851,6 +859,10 @@ const translations = {
     "nginx.delete_title": "Удалить версию",
     "nginx.delete_confirm":
       'Вы уверены, что хотите удалить <strong style="color:var(--text)">Nginx {version}</strong>?<br>Это действие нельзя отменить.',
+    "nginx.header_buffers": "Header Buffers",
+    "nginx.client_header_buffer_size": "client_header_buffer_size",
+    "nginx.large_client_header_buffers": "large_client_header_buffers",
+    "nginx.save_restart": "Сохранить & Перезапустить",
 
     // PHP
     "php.title": "PHP Manager",

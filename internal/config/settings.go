@@ -13,8 +13,10 @@ type AppSettings struct {
 	StartOnBoot      bool   `json:"start_on_boot"`
 	Theme            string `json:"theme"`            // "dark" | "light"
 	Language         string `json:"language"`
-	NginxWorkers     int    `json:"nginx_workers"`    // 0 = auto
-	NginxKeepalive   int    `json:"nginx_keepalive"`  // seconds
+	NginxWorkers                   int    `json:"nginx_workers"`                     // 0 = auto
+	NginxKeepalive                 int    `json:"nginx_keepalive"`                   // seconds
+	NginxClientHeaderBufferSize    string `json:"nginx_client_header_buffer_size"`   // e.g. "4k"
+	NginxLargeClientHeaderBuffers  string `json:"nginx_large_client_header_buffers"` // e.g. "4 8k"
 	MinimizeToTray   bool   `json:"minimize_to_tray"`
 	ShowAppLog       bool   `json:"show_app_log"`
 	PreferredBrowser    string `json:"preferred_browser"`    // exe path, empty = system default
@@ -30,14 +32,16 @@ func settingsPath() string {
 
 func LoadSettings() AppSettings {
 	defaults := AppSettings{
-		BasePath:       "",
-		AutoStop:       false,
-		AutoStart:      false,
-		StartOnBoot:    false,
-		Theme:          "dark",
-		Language:       "en",
-		NginxWorkers:   1,
-		NginxKeepalive: 65,
+		BasePath:                      "",
+		AutoStop:                      false,
+		AutoStart:                     false,
+		StartOnBoot:                   false,
+		Theme:                         "dark",
+		Language:                      "en",
+		NginxWorkers:                  1,
+		NginxKeepalive:                65,
+		NginxClientHeaderBufferSize:   "4k",
+		NginxLargeClientHeaderBuffers: "4 8k",
 	}
 
 	data, err := os.ReadFile(settingsPath())
@@ -58,6 +62,12 @@ func LoadSettings() AppSettings {
 	}
 	if s.NginxKeepalive == 0 {
 		s.NginxKeepalive = 65
+	}
+	if s.NginxClientHeaderBufferSize == "" {
+		s.NginxClientHeaderBufferSize = "4k"
+	}
+	if s.NginxLargeClientHeaderBuffers == "" {
+		s.NginxLargeClientHeaderBuffers = "4 8k"
 	}
 
 	return s

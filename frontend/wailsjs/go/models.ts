@@ -1,5 +1,5 @@
 export namespace config {
-	
+
 	export class AppSettings {
 	    base_path: string;
 	    auto_stop: boolean;
@@ -9,17 +9,19 @@ export namespace config {
 	    language: string;
 	    nginx_workers: number;
 	    nginx_keepalive: number;
+	    nginx_client_header_buffer_size: string;
+	    nginx_large_client_header_buffers: string;
 	    minimize_to_tray: boolean;
 	    show_app_log: boolean;
 	    preferred_browser: string;
 	    notify_service_crash: boolean;
 	    notify_operation_fail: boolean;
 	    tabs_layout: boolean;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new AppSettings(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.base_path = source["base_path"];
@@ -30,6 +32,8 @@ export namespace config {
 	        this.language = source["language"];
 	        this.nginx_workers = source["nginx_workers"];
 	        this.nginx_keepalive = source["nginx_keepalive"];
+	        this.nginx_client_header_buffer_size = source["nginx_client_header_buffer_size"];
+	        this.nginx_large_client_header_buffers = source["nginx_large_client_header_buffers"];
 	        this.minimize_to_tray = source["minimize_to_tray"];
 	        this.show_app_log = source["show_app_log"];
 	        this.preferred_browser = source["preferred_browser"];
@@ -42,17 +46,17 @@ export namespace config {
 }
 
 export namespace hosts {
-	
+
 	export class HostEntry {
 	    ip: string;
 	    host: string;
 	    enabled: boolean;
 	    system: boolean;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new HostEntry(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.ip = source["ip"];
@@ -65,17 +69,17 @@ export namespace hosts {
 }
 
 export namespace main {
-	
+
 	export class AppInfo {
 	    name: string;
 	    version: string;
 	    author: string;
 	    repository: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new AppInfo(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
@@ -89,18 +93,18 @@ export namespace main {
 	    from_cache: boolean;
 	    // Go type: time
 	    cached_at: any;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new VersionResult(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.version = source["version"];
 	        this.from_cache = source["from_cache"];
 	        this.cached_at = this.convertValues(source["cached_at"], null);
 	    }
-	
+
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
 		    if (!a) {
 		        return a;
@@ -123,18 +127,18 @@ export namespace main {
 	    nginx: VersionResult;
 	    php: VersionResult;
 	    redis: VersionResult;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new DashboardVersions(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.nginx = this.convertValues(source["nginx"], VersionResult);
 	        this.php = this.convertValues(source["php"], VersionResult);
 	        this.redis = this.convertValues(source["redis"], VersionResult);
 	    }
-	
+
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
 		    if (!a) {
 		        return a;
@@ -159,11 +163,11 @@ export namespace main {
 	    user: string;
 	    hasPassword: boolean;
 	    password: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new MySQLConnectionInfo(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.host = source["host"];
@@ -177,11 +181,11 @@ export namespace main {
 	    name: string;
 	    charset: string;
 	    collation: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new MySQLDatabaseInfo(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
@@ -193,11 +197,11 @@ export namespace main {
 	    user: string;
 	    host: string;
 	    hasPassword: boolean;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new MySQLUserInfo(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.user = source["user"];
@@ -212,11 +216,11 @@ export namespace main {
 	    releaseURL: string;
 	    downloadURL: string;
 	    error: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new UpdateInfo(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.currentVersion = source["currentVersion"];
@@ -231,7 +235,7 @@ export namespace main {
 }
 
 export namespace php {
-	
+
 	export class PHPConfig {
 	    memory_limit: string;
 	    post_max_size: string;
@@ -242,11 +246,11 @@ export namespace php {
 	    html_errors: boolean;
 	    log_errors: boolean;
 	    short_open_tag: boolean;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new PHPConfig(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.memory_limit = source["memory_limit"];
@@ -263,11 +267,11 @@ export namespace php {
 	export class PHPExtension {
 	    name: string;
 	    enabled: boolean;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new PHPExtension(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
@@ -278,7 +282,7 @@ export namespace php {
 }
 
 export namespace sites {
-	
+
 	export class Site {
 	    name: string;
 	    domain: string;
@@ -286,11 +290,11 @@ export namespace sites {
 	    php: string;
 	    active: boolean;
 	    laravel_version: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new Site(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
@@ -305,15 +309,15 @@ export namespace sites {
 }
 
 export namespace system {
-	
+
 	export class Browser {
 	    name: string;
 	    path: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new Browser(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
@@ -325,11 +329,11 @@ export namespace system {
 	    service: string;
 	    pid: number;
 	    process_name: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new PortConflict(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.port = source["port"];
@@ -344,11 +348,11 @@ export namespace system {
 	    running: boolean;
 	    port: number;
 	    type: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new ServiceStatus(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
@@ -368,11 +372,11 @@ export namespace system {
 	    disk_percent: number;
 	    disk_drive: string;
 	    uptime: string;
-	
+
 	    static createFrom(source: any = {}) {
 	        return new SystemStats(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.cpu = source["cpu"];

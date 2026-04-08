@@ -87,6 +87,30 @@
   animation: fillAnim 1s ease forwards;
 }
 
+/* BUTTON CLICK PULSE */
+@keyframes btnClickPulse {
+  0%   { box-shadow: 0 0 0 0   rgba(0, 201, 160, 0.45); }
+  60%  { box-shadow: 0 0 0 7px rgba(0, 201, 160, 0);    }
+  100% { box-shadow: 0 0 0 0   rgba(0, 201, 160, 0);    }
+}
+
+.btn-clicked {
+  animation: btnClickPulse 0.4s ease-out !important;
+}
+
+/* PANEL ACTIVE BUTTON PULSE */
+@keyframes btnPanelPulse {
+  0%, 100% { box-shadow: 0 0 0 0   rgba(0, 201, 160, 0.35); }
+  50%       { box-shadow: 0 0 0 4px rgba(0, 201, 160, 0);    }
+}
+
+.btn-panel-active {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  background: rgba(0, 201, 160, 0.07) !important;
+  animation: btnPanelPulse 2s ease-in-out infinite;
+}
+
 /* SPINNER */
 @keyframes spin {
   to {

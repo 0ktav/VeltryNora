@@ -28,6 +28,10 @@ const stoppingVersions = new Set();
 let isDeletingPHP = false;
 const installingVersions = new Set();
 
+function setPanelBtnActive(btn, isActive) {
+  if (btn) btn.classList.toggle("btn-panel-active", isActive);
+}
+
 async function loadPHPPage() {
   const installed = await GetPHPInstalledVersions();
 
@@ -343,17 +347,20 @@ async function deletePHP(version, btn) {
   }
 }
 
-async function openConfigPanel(version) {
+async function openConfigPanel(version, btn) {
   const panel = document.getElementById(`php-config-${version}`);
   if (!panel) return;
 
   if (panel.style.display !== "none") {
     panel.style.display = "none";
+    setPanelBtnActive(btn, false);
     return;
   }
 
   panel.innerHTML = `<div style="padding:12px;color:var(--text3);font-size:12px">${t("common.loading")}</div>`;
   panel.style.display = "block";
+  setPanelBtnActive(btn, true);
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const cfg = await GetPHPConfig(version);
 
@@ -388,6 +395,7 @@ async function openConfigPanel(version) {
 
   panel.innerHTML = `
     <div class="php-config-body">
+      <div class="panel-title">${t("php.config")}</div>
       <div class="php-config-grid">
         <div class="php-config-field">
           <label class="form-label">${t("php.memory_limit")}</label>
@@ -442,21 +450,25 @@ async function openConfigPanel(version) {
         await pollUntilStopped(() => IsPHPRunning(version));
         await StartPHP(version);
         panel.style.display = "none";
+        setPanelBtnActive(btn, false);
         updateVersionCard(version, true);
       }
     });
 }
 
-async function openLogPanel(version) {
+async function openLogPanel(version, btn) {
   const panel = document.getElementById(`php-log-${version}`);
   if (!panel) return;
 
   if (panel.style.display !== "none") {
     panel.style.display = "none";
+    setPanelBtnActive(btn, false);
     return;
   }
 
   panel.style.display = "block";
+  setPanelBtnActive(btn, true);
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
   await refreshLogPanel(panel, version);
 }
 
@@ -475,6 +487,7 @@ async function refreshLogPanel(panel, version) {
 
   panel.innerHTML = `
     <div class="php-config-body">
+      <div class="panel-title">${t("nav.logs")}</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span style="font-size:12px;color:var(--text3)">php.log</span>
         <div style="display:flex;gap:6px">
@@ -506,17 +519,20 @@ async function refreshLogPanel(panel, version) {
   });
 }
 
-async function openIniPanel(version) {
+async function openIniPanel(version, btn) {
   const panel = document.getElementById(`php-ini-${version}`);
   if (!panel) return;
 
   if (panel.style.display !== "none") {
     panel.style.display = "none";
+    setPanelBtnActive(btn, false);
     return;
   }
 
   panel.innerHTML = `<div style="padding:12px;color:var(--text3);font-size:12px">${t("common.loading")}</div>`;
   panel.style.display = "block";
+  setPanelBtnActive(btn, true);
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const [extensions, basePath] = await Promise.all([
     GetPHPExtensions(version),
@@ -542,12 +558,10 @@ async function openIniPanel(version) {
 
   panel.innerHTML = `
     <div class="php-config-body">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:13px;font-weight:600;color:var(--text)">${t("php.ini_extensions")}</span>
-        <div style="display:flex;gap:6px">
-          <button id="php-ext-folder-${version}" class="btn btn-secondary" style="font-size:12px;padding:0 10px;height:28px;display:flex;align-items:center;gap:5px"><i data-lucide="folder-open" style="width:13px;height:13px"></i>${t("php.ext_open_folder")}</button>
-          <button id="php-ini-notepad-${version}" class="btn btn-secondary" style="font-size:12px;padding:0 10px;height:28px">${t("php.ini_open_notepad")}</button>
-        </div>
+      <div class="panel-title">${t("php.ini_extensions")}</div>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <button id="php-ext-folder-${version}" class="btn btn-secondary" style="font-size:12px;padding:0 10px;height:28px;display:flex;align-items:center;gap:5px"><i data-lucide="folder-open" style="width:13px;height:13px"></i>${t("php.ext_open_folder")}</button>
+        <button id="php-ini-notepad-${version}" class="btn btn-secondary" style="font-size:12px;padding:0 10px;height:28px">${t("php.ini_open_notepad")}</button>
       </div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:10px">${t("php.ext_folder_hint")}</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">${cells}</div>
@@ -574,20 +588,21 @@ async function openIniPanel(version) {
   document
     .getElementById(`php-ext-save-${version}`)
     .addEventListener("click", async () => {
-      const btn = document.getElementById(`php-ext-save-${version}`);
-      btn.disabled = true;
+      const saveBtn = document.getElementById(`php-ext-save-${version}`);
+      saveBtn.disabled = true;
       const enabled = [
         ...panel.querySelectorAll(".php-ext-toggle:checked"),
       ].map((cb) => cb.dataset.ext);
       const ok = await SavePHPExtensions(version, enabled);
       if (ok) {
-        btn.textContent = t("common.saved");
-        btn.classList.replace("btn-primary", "btn-secondary");
+        saveBtn.textContent = t("common.saved");
+        saveBtn.classList.replace("btn-primary", "btn-secondary");
         setTimeout(() => {
           panel.style.display = "none";
+          setPanelBtnActive(btn, false);
         }, 800);
       } else {
-        btn.disabled = false;
+        saveBtn.disabled = false;
       }
     });
 }
@@ -601,9 +616,9 @@ export function init() {
       const { action, version } = btn.dataset;
       if (action === "start") await startPHP(btn, version);
       else if (action === "stop") await stopPHP(btn, version);
-      else if (action === "config") await openConfigPanel(version);
-      else if (action === "ini") await openIniPanel(version);
-      else if (action === "log") await openLogPanel(version);
+      else if (action === "config") await openConfigPanel(version, btn);
+      else if (action === "ini") await openIniPanel(version, btn);
+      else if (action === "log") await openLogPanel(version, btn);
       else if (action === "delete") await deletePHP(version, btn);
     });
   }

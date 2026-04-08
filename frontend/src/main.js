@@ -20,3 +20,13 @@ startClock();
 initRouter();
 initDownloader();
 initUpdater();
+
+// Global click pulse for all buttons
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  btn.classList.remove("btn-clicked");
+  void btn.offsetWidth; // force reflow to restart animation
+  btn.classList.add("btn-clicked");
+  btn.addEventListener("animationend", () => btn.classList.remove("btn-clicked"), { once: true });
+});

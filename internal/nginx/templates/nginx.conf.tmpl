@@ -12,6 +12,8 @@ http {
     sendfile on;
     keepalive_timeout {{.Keepalive}};
     access_log {{.AccessLog}};
+    client_header_buffer_size {{.ClientHeaderBufferSize}};
+    large_client_header_buffers {{.LargeClientHeaderBuffers}};
 
     # catch-all: block requests to domains without an active site
     server {

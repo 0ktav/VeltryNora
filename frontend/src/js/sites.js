@@ -37,6 +37,10 @@ import { t } from "./i18n.js";
 
 // ── State ──────────────────────────────────────────────────────────────────────
 
+function setPanelBtnActive(btn, isActive) {
+  if (btn) btn.classList.toggle("btn-panel-active", isActive);
+}
+
 let isDeleting = false;
 let isToggling = false;
 let currentSites = [];
@@ -56,13 +60,13 @@ export function init() {
       const { action, domain, root, name } = btn.dataset;
       if (action === "open-site") await openSite(domain);
       else if (action === "open-root") await openRoot(root);
-      else if (action === "rewrites") await openRewritesPanel(name);
-      else if (action === "env") await openEnvPanel(name);
-      else if (action === "terminal") await openTerminalPanel(name, btn.dataset.hasPhp === "1", btn.dataset.hasLaravel === "1");
-      else if (action === "log") await openLogPanel(name);
-      else if (action === "change-php") await openChangePHPPanel(name);
-      else if (action === "change-root") await openChangeRootPanel(name);
-      else if (action === "laravel") await openLaravelPanel(name);
+      else if (action === "rewrites") await openRewritesPanel(name, btn);
+      else if (action === "env") await openEnvPanel(name, btn);
+      else if (action === "terminal") await openTerminalPanel(name, btn.dataset.hasPhp === "1", btn.dataset.hasLaravel === "1", btn);
+      else if (action === "log") await openLogPanel(name, btn);
+      else if (action === "change-php") await openChangePHPPanel(name, btn);
+      else if (action === "change-root") await openChangeRootPanel(name, btn);
+      else if (action === "laravel") await openLaravelPanel(name, btn);
       else if (action === "toggle") await toggleSite(btn, name);
       else if (action === "delete") await deleteSite(name);
     });
@@ -702,17 +706,20 @@ async function deleteSite(name) {
 
 // ── Panel: change PHP ──────────────────────────────────────────────────────────
 
-async function openChangePHPPanel(name) {
+async function openChangePHPPanel(name, btn) {
   const panel = document.getElementById(`site-php-${name}`);
   if (!panel) return;
 
   if (panel.style.display !== "none") {
     panel.style.display = "none";
+    setPanelBtnActive(btn, false);
     return;
   }
 
   panel.innerHTML = `<div style="padding:12px;color:var(--text3);font-size:12px">${t("common.loading")}</div>`;
   panel.style.display = "block";
+  setPanelBtnActive(btn, true);
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const [phpVersions, sites] = await Promise.all([
     GetPHPInstalledVersions(),
@@ -734,6 +741,7 @@ async function openChangePHPPanel(name) {
 
   panel.innerHTML = `
     <div class="php-config-body">
+      <div class="panel-title">${t("sites.change_php")}</div>
       <div style="display:flex;align-items:center;gap:8px">
         <select id="site-php-select-${name}" class="select" style="flex:1">${options}</select>
         <button class="btn btn-primary" id="site-php-save-${name}">${t("common.save")}</button>
@@ -764,17 +772,20 @@ async function openChangePHPPanel(name) {
 
 // ── Panel: change root ─────────────────────────────────────────────────────────
 
-async function openChangeRootPanel(name) {
+async function openChangeRootPanel(name, btn) {
   const panel = document.getElementById(`site-root-${name}`);
   if (!panel) return;
 
   if (panel.style.display !== "none") {
     panel.style.display = "none";
+    setPanelBtnActive(btn, false);
     return;
   }
 
   panel.innerHTML = `<div style="padding:12px;color:var(--text3);font-size:12px">${t("common.loading")}</div>`;
   panel.style.display = "block";
+  setPanelBtnActive(btn, true);
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const sites = await GetSites();
   const site = sites.find((s) => s.name === name);
@@ -782,6 +793,7 @@ async function openChangeRootPanel(name) {
 
   panel.innerHTML = `
     <div class="php-config-body">
+      <div class="panel-title">${t("sites.change_root")}</div>
       <div style="display:flex;align-items:center;gap:8px">
         <input id="site-root-input-${name}" class="input" type="text" value="${escapeHtml(currentRoot)}" style="flex:1;font-size:12px" placeholder="${escapeHtml(currentRoot)}" />
         <button class="btn btn-secondary btn-icon" id="site-root-browse-${name}" title="${t("sites.browse")}"><i data-lucide="folder-open"></i></button>
@@ -816,22 +828,26 @@ async function openChangeRootPanel(name) {
 
 // ── Panel: rewrites ────────────────────────────────────────────────────────────
 
-async function openRewritesPanel(name) {
+async function openRewritesPanel(name, btn) {
   const panel = document.getElementById(`site-rewrites-${name}`);
   if (!panel) return;
 
   if (panel.style.display !== "none") {
     panel.style.display = "none";
+    setPanelBtnActive(btn, false);
     return;
   }
 
   panel.innerHTML = `<div style="padding:12px;color:var(--text3);font-size:12px">${t("common.loading")}</div>`;
   panel.style.display = "block";
+  setPanelBtnActive(btn, true);
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const current = await GetSiteRewrites(name);
 
   panel.innerHTML = `
     <div class="php-config-body">
+      <div class="panel-title">${t("sites.rewrites")}</div>
       <textarea
         id="site-rewrites-input-${name}"
         class="input"
@@ -868,6 +884,7 @@ async function openRewritesPanel(name) {
       const ok = await SaveSiteRewrites(name, rules);
       if (ok) {
         panel.style.display = "none";
+        setPanelBtnActive(btn, false);
         await RestartNginx();
       }
     });
@@ -924,17 +941,20 @@ function collectKvPairs(tbody) {
   })).filter(p => p.key);
 }
 
-async function openEnvPanel(name) {
+async function openEnvPanel(name, btn) {
   const panel = document.getElementById(`site-env-${name}`);
   if (!panel) return;
 
   if (panel.style.display !== "none") {
     panel.style.display = "none";
+    setPanelBtnActive(btn, false);
     return;
   }
 
   panel.innerHTML = `<div style="padding:12px;color:var(--text3);font-size:12px">${t("common.loading")}</div>`;
   panel.style.display = "block";
+  setPanelBtnActive(btn, true);
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const [exists, raw] = await Promise.all([EnvFileExists(name), GetEnvFile(name)]);
 
@@ -943,6 +963,7 @@ async function openEnvPanel(name) {
 
   panel.innerHTML = `
     <div class="php-config-body">
+      <div class="panel-title">${t("sites.env")}</div>
       ${!exists ? `<div style="font-size:11px;color:var(--text3);margin-bottom:8px">${t("sites.env_create")}</div>` : ""}
       <div class="env-tab-bar">
         <button class="env-tab-btn active" data-tab="kv">${t("sites.env_tab_kv")}</button>
@@ -1027,7 +1048,10 @@ async function openEnvPanel(name) {
       content = rawInput.value;
     }
     const ok = await SaveEnvFile(name, content);
-    if (ok) panel.style.display = "none";
+    if (ok) {
+      panel.style.display = "none";
+      setPanelBtnActive(btn, false);
+    }
   });
 }
 
@@ -1045,12 +1069,13 @@ function getQuickActions(hasPhp, hasLaravel) {
   return actions;
 }
 
-async function openTerminalPanel(name, hasPhp = false, hasLaravel = false) {
+async function openTerminalPanel(name, hasPhp = false, hasLaravel = false, btn) {
   const panel = document.getElementById(`site-terminal-${name}`);
   if (!panel) return;
 
   if (panel.style.display !== "none") {
     panel.style.display = "none";
+    setPanelBtnActive(btn, false);
     return;
   }
 
@@ -1059,6 +1084,7 @@ async function openTerminalPanel(name, hasPhp = false, hasLaravel = false) {
 
   panel.innerHTML = `
     <div class="php-config-body">
+      <div class="panel-title">${t("sites.terminal")}</div>
       <div id="terminal-output-${name}" class="terminal-output"></div>
       <div style="display:flex;gap:6px;margin-top:8px">
         <input
@@ -1077,6 +1103,8 @@ async function openTerminalPanel(name, hasPhp = false, hasLaravel = false) {
     </div>
   `;
   panel.style.display = "block";
+  setPanelBtnActive(btn, true);
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const output = document.getElementById(`terminal-output-${name}`);
   const input = document.getElementById(`terminal-input-${name}`);
@@ -1156,16 +1184,19 @@ async function openTerminalPanel(name, hasPhp = false, hasLaravel = false) {
 
 // ── Panel: logs ────────────────────────────────────────────────────────────────
 
-async function openLogPanel(name) {
+async function openLogPanel(name, btn) {
   const panel = document.getElementById(`site-log-${name}`);
   if (!panel) return;
 
   if (panel.style.display !== "none") {
     panel.style.display = "none";
+    setPanelBtnActive(btn, false);
     return;
   }
 
   panel.style.display = "block";
+  setPanelBtnActive(btn, true);
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
   if (!currentSiteLogType[name]) currentSiteLogType[name] = "site-access";
   await refreshSiteLog(panel, name);
 }
@@ -1178,6 +1209,7 @@ async function refreshSiteLog(panel, name) {
 
   panel.innerHTML = `
     <div class="php-config-body">
+      <div class="panel-title">${t("nav.logs")}</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div class="lang-selector" style="padding:2px;gap:2px">
           <button class="lang-btn${(currentSiteLogType[name] || "site-access") === "site-access" ? " active" : ""}" data-log-tab="site-access">${t("logs.access")}</button>
@@ -1232,7 +1264,7 @@ const ARTISAN_COMMANDS = [
   { cmd: "migrate", icon: "play", label: "migrate", confirm: true },
 ];
 
-async function openLaravelPanel(name) {
+async function openLaravelPanel(name, btn) {
   const panel = document.getElementById(`site-laravel-${name}`);
   if (!panel) return;
 
@@ -1240,10 +1272,13 @@ async function openLaravelPanel(name) {
     EventsOff(`laravel-update-output-${name}`);
     EventsOff(`laravel-update-done-${name}`);
     panel.style.display = "none";
+    setPanelBtnActive(btn, false);
     return;
   }
 
   panel.style.display = "block";
+  setPanelBtnActive(btn, true);
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const site = currentSites.find((s) => s.name === name);
   const version = site?.laravel_version || "";

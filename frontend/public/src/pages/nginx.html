@@ -89,6 +89,45 @@
           <div id="nginx-versions-list" class="php-list"></div>
         </div>
       </div>
+
+      <!-- Global header buffer settings -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="dot" style="background: var(--nginx)"></div>
+            <span data-i18n="nginx.header_buffers">Header Buffers</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="php-config-grid" style="grid-template-columns: repeat(2, 1fr)">
+            <div class="php-config-field">
+              <label class="form-label" data-i18n="nginx.client_header_buffer_size">client_header_buffer_size</label>
+              <select id="nginx-client-header-buffer-size" class="select" style="font-family:var(--font-mono);font-size:12px">
+                <option value="4k">4k — Default</option>
+                <option value="8k">8k — Small JWT</option>
+                <option value="16k">16k — JWT / OAuth</option>
+                <option value="32k">32k — Large tokens</option>
+                <option value="64k">64k — SSO / enterprise</option>
+                <option value="164k">164k — Max (local dev)</option>
+              </select>
+            </div>
+            <div class="php-config-field">
+              <label class="form-label" data-i18n="nginx.large_client_header_buffers">large_client_header_buffers</label>
+              <select id="nginx-large-client-header-buffers" class="select" style="font-family:var(--font-mono);font-size:12px">
+                <option value="4 8k">4 × 8k — Default</option>
+                <option value="4 16k">4 × 16k — Small JWT</option>
+                <option value="4 32k">4 × 32k — JWT / OAuth</option>
+                <option value="8 32k">8 × 32k — Large tokens</option>
+                <option value="8 64k">8 × 64k — SSO / enterprise</option>
+                <option value="16 164k">16 × 164k — Max (local dev)</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:12px">
+            <button class="btn btn-primary" id="nginx-header-buffers-save" data-i18n="nginx.save_restart">Save &amp; Restart</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Logs tab -->

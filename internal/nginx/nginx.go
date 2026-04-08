@@ -228,13 +228,24 @@ func ensureConfig(basePath string) error {
 
 	tmpl, _ := template.New("nginx").Parse(nginxConfTmpl)
 	var buf bytes.Buffer
+	clientHeaderBufferSize := s.NginxClientHeaderBufferSize
+	if clientHeaderBufferSize == "" {
+		clientHeaderBufferSize = "4k"
+	}
+	largeClientHeaderBuffers := s.NginxLargeClientHeaderBuffers
+	if largeClientHeaderBuffers == "" {
+		largeClientHeaderBuffers = "4 8k"
+	}
+
 	tmpl.Execute(&buf, map[string]interface{}{
-		"Workers":   workers,
-		"Keepalive": keepalive,
-		"ErrorLog":  filepath.ToSlash(filepath.Join(basePath, config.LogsFolder, "error.log")),
-		"AccessLog": filepath.ToSlash(filepath.Join(basePath, config.LogsFolder, "access.log")),
-		"MimesPath": filepath.ToSlash(filepath.Join(basePath, config.ConfigFolder, "mime.types")),
-		"SitesPath": filepath.ToSlash(filepath.Join(basePath, config.ConfigFolder, config.SitesFolder, "*.conf")),
+		"Workers":                  workers,
+		"Keepalive":                keepalive,
+		"ClientHeaderBufferSize":   clientHeaderBufferSize,
+		"LargeClientHeaderBuffers": largeClientHeaderBuffers,
+		"ErrorLog":                 filepath.ToSlash(filepath.Join(basePath, config.LogsFolder, "error.log")),
+		"AccessLog":                filepath.ToSlash(filepath.Join(basePath, config.LogsFolder, "access.log")),
+		"MimesPath":                filepath.ToSlash(filepath.Join(basePath, config.ConfigFolder, "mime.types")),
+		"SitesPath":                filepath.ToSlash(filepath.Join(basePath, config.ConfigFolder, config.SitesFolder, "*.conf")),
 	})
 
 	return os.WriteFile(configPath, buf.Bytes(), 0644)
